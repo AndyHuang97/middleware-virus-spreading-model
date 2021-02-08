@@ -1,0 +1,36 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "(mpirun) Launch",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "/usr/bin/mpirun",
+      "args": [
+        "-np",
+        "4",
+        "${workspaceFolder}/obj/${fileBasenameNoExtension}.out"
+      ],
+      "stopAtEntry": false,
+      "cwd": "${workspaceFolder}",
+      "environment": [],
+      "externalConsole": false,
+      "miDebuggerPath": "/usr/bin/gdb",
+      "preLaunchTask": "mpicc make",
+      "MIMode": "gdb"
+    },
+    {
+      "name": "Single process",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/obj/main.out",
+      "stopAtEntry": false,
+      "cwd": "${workspaceFolder}",
+      "environment": [],
+      "externalConsole": false,
+      "miDebuggerPath": "/usr/bin/gdb",
+      "preLaunchTask": "mpicc make",
+      "MIMode": "gdb"
+    }
+  ]
+}
