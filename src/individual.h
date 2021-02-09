@@ -1,14 +1,14 @@
-typedef struct
-{
+#include <stdbool.h>
+
+typedef struct {
   int ID;
   bool isInfected;
   bool isImmune;
-  float speed;
-  int positionX;
-  int positionY;
-
+  int infection_count;
+  int susceptible_count;
+  int row;
+  int column;
 } Individual;
 
-Individual makeIndividual(int ID, bool infected, float speed);
-void updatePosition(Individual *ind, int newPosX, int newPosY);
+void updatePosition(Individual *ind, int speed);
 void printIndividualData(Individual ind);

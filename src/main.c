@@ -1,30 +1,43 @@
 #include <mpi.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdbool.h>
-#include <mpi.h>
+#include <time.h>
 
 #include "individual.h"
+#include "parameters.h"
+#include "utils.h"
 
-#define POPULATION_SIZE 10;
-
-int main(int argc, char const *argv[])
-{
-
+int main(int argc, char const *argv[]) {
+  Individual individuals[POPULATION_SIZE];
   // MPI_Init(NULL, NULL);
 
   // int my_rank, world_size;
   // MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
   // MPI_Comm_size(MPI_COMM_WORLD, &world_size
 
-  Individual newInd = {1, true, true, 3.33, 10, 55};
-  printIndividualData(newInd);
-  Individual newInd2 = {2, false, true, 56.1, 146, 588};
-  Individual test = {3, false, true, 23, 88, 12};
-  printIndividualData(newInd2);
-  printIndividualData(test);
-  updatePosition(&newInd, 99, 99);
-  printIndividualData(newInd);
-  //MPI_Finalize();
+  srand(time(0));  // Initialization, should only be called once.
+  printf("// INITIAL POPULATION // \n");
+  for (int i = 0; i < POPULATION_SIZE; i++) {
+    Individual ind = {i,
+                      true,
+                      true,
+                      0,
+                      0,
+                      rand_int(0, MAX_WIDTH),
+                      rand_int(0, MAX_HEIGHT)};
+    individuals[i] = ind;
+    printIndividualData(individuals[i]);
+  }
+
+  for (int t = 0; t < END_TIME; t += TIME_STEP) {
+    printf("Simulation time: %d \n", t);
+    for (int i = 0; i < POPULATION_SIZE; i++) {
+      updatePosition(&individuals[i], SPEED);
+      printIndividualData(individuals[i]);
+    }
+  }
+
+  // MPI_Finalize();
 }

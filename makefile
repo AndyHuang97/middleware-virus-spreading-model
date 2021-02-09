@@ -1,7 +1,7 @@
 CC=mpicc
 SRCDIR=src
 OUT=obj
-SRCS= $(SRCDIR)/main.c $(SRCDIR)/individual.c
+SRCS= $(SRCDIR)/main.c $(SRCDIR)/individual.c $(SRCDIR)/utils.c
 
 
 compile: $(OBJ)
