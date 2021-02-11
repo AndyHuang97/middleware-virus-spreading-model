@@ -1,3 +1,4 @@
+#include "parameters.h"
 
 struct CellList_t {
   int id;
@@ -13,4 +14,5 @@ typedef struct
 } ListPointer;
 
 void push(CellList** head, int val);
-void printList(CellList* head);
+void printList(CellList* head, int row, int col);
+void clearGrid(ListPointer grid[][MAX_WIDTH]);

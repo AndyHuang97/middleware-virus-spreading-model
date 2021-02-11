@@ -38,23 +38,24 @@ int main(int argc, char const *argv[]) {
                       rand_int(0, (MAX_WIDTH - 1))};
     individuals[i] = ind;
     printIndividualData(individuals[i]);
-  }
-
-  for (int i = 0; i < POPULATION_SIZE; i++) {
-    Individual ind = individuals[i];
-
     push(&grid[ind.row][ind.column].head, ind.ID);
-    printf("Content of list in position (%d, %d): ", ind.row, ind.column);
-    printList(grid[ind.row][ind.column].head);
+    printList(grid[ind.row][ind.column].head, ind.row, ind.column);
   }
 
-  // for (int t = 0; t < END_TIME; t += TIME_STEP) {
-  //   printf("Simulation time: %d \n", t);
-  //   for (int i = 0; i < POPULATION_SIZE; i++) {
-  //     updatePosition(&individuals[i], SPEED);
-  //     printIndividualData(individuals[i]);
-  //   }
-  // }
+  for (int t = 0; t < END_TIME; t += TIME_STEP) {
+    printf("SIMULATION TIME: %d \n", t);
+    clearGrid(grid);
+    for (int i = 0; i < POPULATION_SIZE; i++) {
+      updatePosition(&individuals[i], SPEED);
+      Individual ind = individuals[i];
+      printIndividualData(ind);
+      push(&grid[ind.row][ind.column].head, ind.ID);
+      printList(grid[ind.row][ind.column].head, ind.row, ind.column);
+    }
+  }
+
+  //Completely free the memory
+  clearGrid(grid);
   printf("// END OF SIMULATION // \n");
   // MPI_Finalize();
 }
