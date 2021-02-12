@@ -1,3 +1,4 @@
+#include <mpi.h>
 #include <stdbool.h>
 
 typedef struct {
@@ -12,3 +13,4 @@ typedef struct {
 
 void updatePosition(Individual *ind, int speed);
 void printIndividualData(Individual ind);
+MPI_Datatype serializeStruct();

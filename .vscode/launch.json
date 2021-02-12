@@ -8,7 +8,7 @@
       "program": "/usr/bin/mpirun",
       "args": [
         "-np",
-        "4",
+        "1",
         "${workspaceFolder}/obj/${fileBasenameNoExtension}.out"
       ],
       "stopAtEntry": false,

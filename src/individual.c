@@ -1,6 +1,7 @@
 #include "individual.h"
 
 #include <math.h>
+#include <mpi.h>
 #include <stdbool.h>
 #include <stdio.h>
 
@@ -51,4 +52,22 @@ void updatePosition(Individual *individual, int speed) {
         break;
     }
   }
+}
+
+MPI_Datatype serializeStruct() {
+  MPI_Datatype individual_type;
+  int struct_length = 7;
+  int lengths[7] = {1, 1, 1, 1, 1, 1, 1};
+  const MPI_Aint displacements[7] = {0,
+                                     sizeof(int),
+                                     sizeof(int) + sizeof(bool),
+                                     sizeof(int) + (2 * sizeof(bool)),
+                                     (2 * sizeof(int)) + (2 * sizeof(bool)),
+                                     (3 * sizeof(int)) + (2 * sizeof(bool)),
+                                     (4 * sizeof(int)) + (2 * sizeof(bool))};
+  MPI_Datatype types[7] = {MPI_INT, MPI_C_BOOL, MPI_C_BOOL, MPI_INT, MPI_INT, MPI_INT, MPI_INT};
+  MPI_Type_create_struct(struct_length, lengths, displacements, types, &individual_type);
+  MPI_Type_commit(&individual_type);
+
+  return individual_type;
 }
