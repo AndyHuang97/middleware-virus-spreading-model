@@ -11,7 +11,7 @@
 #include "utils.h"
 
 int main(int argc, char const *argv[]) {
-  srand(0);
+  srand(time(0));
   MPI_Init(NULL, NULL);
   MPI_Datatype individual_type = serializeStruct();
 
@@ -56,8 +56,26 @@ int main(int argc, char const *argv[]) {
 
     for (int i = 0; i < num_elements_per_proc; i++) {
       updatePosition(&local_arr[i], SPEED);
-      printf("My rank %d: ", my_rank);
+      printf("(%d) My rank %d: ", t, my_rank);
       printIndividualData(local_arr[i]);
+    }
+
+    Individual *gather_array;
+    if (my_rank == 0) {
+      gather_array = (Individual *)malloc(sizeof(Individual) * POPULATION_SIZE);
+    }
+
+    MPI_Gather(local_arr, num_elements_per_proc, individual_type, gather_array, num_elements_per_proc, individual_type, 0, MPI_COMM_WORLD);
+
+    if (my_rank == 0) {
+      for (int i = 0; i < POPULATION_SIZE; i++) {
+        individuals[i] = gather_array[i];
+        printf("(%d) GATHERED: ", t);
+        printIndividualData(individuals[i]);
+      }
+
+      free(local_arr);
+      free(gather_array);
     }
 
     // for (int i = 0; i < POPULATION_SIZE; i++) {
