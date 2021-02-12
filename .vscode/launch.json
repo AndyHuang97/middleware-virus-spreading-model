@@ -8,8 +8,8 @@
       "program": "/usr/bin/mpirun",
       "args": [
         "-np",
-        "1",
-        "${workspaceFolder}/obj/${fileBasenameNoExtension}.out"
+        "4",
+        "${workspaceFolder}/obj/main.out"
       ],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}",
