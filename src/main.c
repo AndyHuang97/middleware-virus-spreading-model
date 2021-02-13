@@ -46,12 +46,18 @@ int main(int argc, char const *argv[]) {
     }
   }
   // Initialization, should only be called once.
+  Individual *local_arr = (Individual *)malloc(sizeof(Individual) * num_elements_per_proc);
+
+  Individual *gather_array;
+  if (my_rank == 0) {
+    gather_array = (Individual *)malloc(sizeof(Individual) * POPULATION_SIZE);
+  }
 
   for (int t = 0; t < END_TIME; t += TIME_STEP) {
     printf("My rank %d: ", my_rank);
     printf("SIMULATION TIME: %d \n", t);
     if (my_rank == 0) clearGrid(grid);
-    Individual *local_arr = (Individual *)malloc(sizeof(Individual) * num_elements_per_proc);
+
     MPI_Scatter(individuals, num_elements_per_proc, individual_type, local_arr, num_elements_per_proc, individual_type, 0, MPI_COMM_WORLD);
 
     for (int i = 0; i < num_elements_per_proc; i++) {
@@ -60,23 +66,21 @@ int main(int argc, char const *argv[]) {
       printIndividualData(local_arr[i]);
     }
 
-    Individual *gather_array;
-    if (my_rank == 0) {
-      gather_array = (Individual *)malloc(sizeof(Individual) * POPULATION_SIZE);
-    }
-
     MPI_Gather(local_arr, num_elements_per_proc, individual_type, gather_array, num_elements_per_proc, individual_type, 0, MPI_COMM_WORLD);
 
     if (my_rank == 0) {
       for (int i = 0; i < POPULATION_SIZE; i++) {
         individuals[i] = gather_array[i];
+        Individual ind = individuals[i];
         printf("(%d) GATHERED: ", t);
-        printIndividualData(individuals[i]);
+        printIndividualData(ind);
+        push(&grid[ind.row][ind.column].head, ind.ID);
+        printf("(%d) ", t);
+        printList(grid[ind.row][ind.column].head, ind.row, ind.column);
       }
-
-      free(local_arr);
-      free(gather_array);
     }
+
+    MPI_Barrier(MPI_COMM_WORLD);
 
     // for (int i = 0; i < POPULATION_SIZE; i++) {
     //   updatePosition(&individuals[i], SPEED);
@@ -88,8 +92,13 @@ int main(int argc, char const *argv[]) {
   }
 
   //Completely free the memory
-  clearGrid(grid);
   printf("// END OF SIMULATION // \n");
-  MPI_Barrier(MPI_COMM_WORLD);
+  if (my_rank == 0) {
+    free(gather_array);
+    clearGrid(grid);
+  }
+  free(local_arr);
+
+  MPI_Type_free(&individual_type);
   MPI_Finalize();
 }
