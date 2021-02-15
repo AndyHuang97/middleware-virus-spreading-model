@@ -1,11 +1,11 @@
-#define POPULATION_SIZE 12
-#define MAX_WIDTH 5
-#define MAX_HEIGHT 5
-#define TIME_STEP 1
-#define END_TIME 1
-#define SPEED 2
-#define SPREAD_DISTANCE 1
+#define POPULATION_SIZE 48
+#define MAX_WIDTH 15
+#define MAX_HEIGHT 15
+#define TIME_STEP (60 * 10)
+#define END_TIME (60 * 60 * 24 * 30 * 4)
+#define SPEED 3
+#define SPREAD_DISTANCE 3
 #define VERBOSE true
-#define SUSCEPTIBILITY_THR (60*60*24*90)
-#define INFECTION_THR (60*10)
-#define IMMUNITY_THR (60*60*24*10)
+#define SUSCEPTIBILITY_THR (60 * 60 * 24 * 90)
+#define INFECTION_THR (60 * 10)
+#define IMMUNITY_THR (60 * 60 * 24 * 10)

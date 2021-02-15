@@ -29,13 +29,13 @@ int main(int argc, char const *argv[]) {
       grid[i][j].head = NULL;
     }
   }
-  
+
   if (my_rank == 0) {
     printf("// INITIAL POPULATION // \n");
     for (int i = 0; i < POPULATION_SIZE; i++) {
       Individual ind = {i,
-                        true,
-                        true,
+                        rand() % 3 == 0 ? true : false,
+                        false,
                         0,
                         0,
                         0,
@@ -44,10 +44,10 @@ int main(int argc, char const *argv[]) {
       individuals[i] = ind;
       printIndividualData(individuals[i]);
       push(&grid[ind.row][ind.column].head, ind.ID);
-      printList(grid[ind.row][ind.column].head, ind.row, ind.column);
+      //printList(grid[ind.row][ind.column].head, ind.row, ind.column);
     }
   }
-  
+
   // Initialization, should only be called once.
   Individual *local_arr = (Individual *)malloc(sizeof(Individual) * num_elements_per_proc);
   Individual *gather_array = (Individual *)malloc(sizeof(Individual) * POPULATION_SIZE);
@@ -56,36 +56,30 @@ int main(int argc, char const *argv[]) {
   if (my_rank == 0) final_gather_array = (Individual *)malloc(sizeof(Individual) * POPULATION_SIZE);
 
   for (int t = 0; t < END_TIME; t += TIME_STEP) {
-    printf("My rank %d: ", my_rank);
-    printf("SIMULATION TIME: %d \n", t);
+    if (my_rank == 0 && t % (60 * 60 * 24 * 7) == 0) printf("(R: %d) SIMULATION TIME: %d \n", my_rank, t);
     clearGrid(grid);
 
     MPI_Scatter(individuals, num_elements_per_proc, individual_type, local_arr, num_elements_per_proc, individual_type, 0, MPI_COMM_WORLD);
 
     for (int i = 0; i < num_elements_per_proc; i++) {
       updatePosition(&local_arr[i], SPEED);
-      printf("(%d) My rank %d: ", t, my_rank);
-      printIndividualData(local_arr[i]);
+      // printf("(R: %d, t: %d) ", my_rank, t);
+      // printIndividualData(local_arr[i]);
     }
 
     // Every process receives all the updated indiduals
     MPI_Allgather(local_arr, num_elements_per_proc, individual_type, gather_array, num_elements_per_proc, individual_type, MPI_COMM_WORLD);
 
     for (int i = 0; i < POPULATION_SIZE; i++) {
-
-      /* if( my_rank == 0) {
-        printf("(%d) GATHERED: ", t);
-        printf("My rank %d: ", my_rank);
-        printIndividualData(ind);
-      } */
       push(&grid[gather_array[i].row][gather_array[i].column].head, gather_array[i].ID);
-      
-      printf("(%d) My rank %d ", t, my_rank);
-      printList(grid[gather_array[i].row][gather_array[i].column].head, gather_array[i].row, gather_array[i].column);
+
+      if (my_rank == 1) {
+        // printf("(R: %d, t: %d) ", my_rank, t);
+        // printList(grid[gather_array[i].row][gather_array[i].column].head, gather_array[i].row, gather_array[i].column);
+      }
     }
 
     for (int i = 0; i < num_elements_per_proc; i++) {
-      printf("(%d) My rank %d: ", t, my_rank);
       updateIndividualCounters(&local_arr[i], grid, gather_array, SPREAD_DISTANCE, VERBOSE);
     }
 
@@ -94,13 +88,12 @@ int main(int argc, char const *argv[]) {
     if (my_rank == 0) {
       for (int i = 0; i < POPULATION_SIZE; i++) {
         individuals[i] = final_gather_array[i];
-        printIndividualData(individuals[i]);
+        if (t % (60 * 60 * 24 * 7) == 0) {
+          printf("FINAL (R: %d, t: %d) ", my_rank, t);
+          printIndividualData(individuals[i]);
+        }
       }
-      // if (t == 60*60*24) {
-      
-      // }
     }
-    
 
     MPI_Barrier(MPI_COMM_WORLD);
 
@@ -111,11 +104,11 @@ int main(int argc, char const *argv[]) {
     //   push(&grid[ind.row][ind.column].head, ind.ID);
     //   printList(grid[ind.row][ind.column].head, ind.row, ind.column);
     // }
-
   }
 
   //Completely free the memory
-  printf("// END OF SIMULATION // \n");
+
+  if (my_rank == 0) free(final_gather_array);
 
   free(gather_array);
   clearGrid(grid);

@@ -58,14 +58,14 @@ void updateIndividualCounters(Individual *ind, ListPointer grid[MAX_HEIGHT][MAX_
   // int bufferLen = 16;
   // int* neighbours = (int*) malloc(sizeof(int)*bufferLen);
   // *neighboursLen = 0;
-  
+
   if (ind->isImmune) {
     ind->susceptible_count += TIME_STEP;
     if (ind->susceptible_count >= SUSCEPTIBILITY_THR) {
       ind->isImmune = false;
       ind->susceptible_count = 0;
     }
-    return ;
+    return;
   } else if (ind->isInfected) {
     ind->immunity_count += TIME_STEP;
     if (ind->immunity_count >= IMMUNITY_THR) {
@@ -73,38 +73,37 @@ void updateIndividualCounters(Individual *ind, ListPointer grid[MAX_HEIGHT][MAX_
       ind->isInfected = false;
       ind->immunity_count = 0;
     }
-    return ;
+    return;
   } else {
-    for(int i = -spreadDistance; i <= spreadDistance; i++) {
-      for (int j = -spreadDistance; j <= spreadDistance; j++)
-      {
+    for (int i = -spreadDistance; i <= spreadDistance; i++) {
+      for (int j = -spreadDistance; j <= spreadDistance; j++) {
         // int cellLen = 0;
         //TODO need to check that ind.ID is not inserted in the list
         //TODO need to check borders of grid
-        
-        if ((ind->row+i >= 0 && ind->row+i < MAX_WIDTH) && (ind->column+j >= 0 && ind->column+j < MAX_HEIGHT)) {
+
+        if ((ind->row + i >= 0 && ind->row + i < MAX_WIDTH) && (ind->column + j >= 0 && ind->column + j < MAX_HEIGHT)) {
           // printf("Individual ID %d) at cell (%d,%d) checking neighbouring cell (%d,%d)\n", ind->ID, ind->row, ind->column, ind->row+i, ind->column+j);
-          bool infection = infectedInCell(grid[ind->row+i][ind->column+j].head, individuals);
+          bool infection = infectedInCell(grid[ind->row + i][ind->column + j].head, individuals);
           if (infection) {
             ind->infection_count += TIME_STEP;
             if (ind->infection_count >= INFECTION_THR) {
               ind->isInfected = true;
               ind->infection_count = 0;
-              return ;
             }
+            return;
           }
         }
       }
     }
     // no infected in range
     ind->infection_count = 0;
-    return ;
+    return;
   }
 }
 
 bool infectedInCell(CellList *head, Individual individuals[]) {
   CellList *curr = head;
-  
+
   while (curr != NULL) {
     // printf("ID in list: %d, length: %d\n", curr->id, *length);
     if (individuals[curr->id].isInfected) return true;
@@ -113,7 +112,7 @@ bool infectedInCell(CellList *head, Individual individuals[]) {
   return false;
 }
 
-void printNeighbours(int id, int* neighbours, int len) {
+void printNeighbours(int id, int *neighbours, int len) {
   printf("Individual ID %d) neighbours: [", id);
   for (int i = 0; i < len; i++) {
     printf("%d ", neighbours[i]);
