@@ -4,8 +4,8 @@
 #include <mpi.h>
 #include <stdbool.h>
 #include <stdio.h>
+#include <stdlib.h>
 
-#include "parameters.h"
 #include "utils.h"
 
 void printIndividualData(Individual ind) {
@@ -52,6 +52,48 @@ void updatePosition(Individual *individual, int speed) {
         break;
     }
   }
+}
+
+int* findNeighbours(Individual ind, ListPointer grid[MAX_HEIGHT][MAX_WIDTH], int spreadDistance, int* neighboursLen, bool verbose) {
+  int bufferLen = 16;
+  int* neighbours = (int*) malloc(sizeof(int)*bufferLen);
+  *neighboursLen = 0;
+
+  for(int i = -spreadDistance; i <= spreadDistance; i++) {
+    for (int j = -spreadDistance; j <= spreadDistance; j++)
+    {
+      int cellLen = 0;
+      //TODO need to check that ind.ID is not inserted in the list
+      //TODO need to check borders of grid
+      
+      if ((ind.row+i >= 0 && ind.row+i < MAX_WIDTH) && (ind.column+j >= 0 && ind.column+j < MAX_HEIGHT)) {
+        // printf("Individual ID %d) at cell (%d,%d) checking neighbouring cell (%d,%d)\n", ind.ID, ind.row, ind.column, ind.row+i, ind.column+j);
+        int* cellIDs = getIDList(grid[ind.row+i][ind.column+j].head, &cellLen, ind.ID);
+
+        for (int k = 0; k < cellLen; k++) {
+          if (bufferLen == *neighboursLen-1) {
+            bufferLen *= 2;
+            neighbours = realloc(neighbours, sizeof(int)*bufferLen);
+          }
+          
+          neighbours[*neighboursLen] = cellIDs[k];
+          *neighboursLen += 1;
+        }
+      }
+    }
+  }
+
+  if (verbose) printNeighbours(ind.ID, neighbours, neighboursLen);
+
+  return neighbours;
+}
+
+void printNeighbours(int id, int* neighbours, int len) {
+  printf("Individual ID %d) neighbours: [", id);
+  for (int i = 0; i < len; i++) {
+    printf("%d ", neighbours[i]);
+  }
+  printf("]\n");
 }
 
 MPI_Datatype serializeStruct() {
