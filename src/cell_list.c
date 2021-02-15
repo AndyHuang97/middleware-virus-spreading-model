@@ -14,27 +14,6 @@ void push(CellList **head, int val) {
   new_ind->next = *head;
   *head = new_ind;
 }
-int* getIDList(CellList *head, int* length, int ignoreID) {
-  *length = 0;
-  int bufferLen = 4;
-  int* ind = (int*) malloc(sizeof(int)*bufferLen);
-
-  CellList *curr = head;
-  
-  while (curr != NULL) {
-    // printf("ID in list: %d, length: %d\n", curr->id, *length);
-    if (curr->id != ignoreID) {
-      if (bufferLen == *length-1) {
-        bufferLen *= 2;
-        ind = realloc(ind, sizeof(int)*bufferLen);
-      }
-      ind[*length] = curr->id;
-      *length += 1;
-    }
-    curr = curr->next;
-  }
-  return ind;
-}
 
 void deleteList(CellList **head_ref) {
   CellList *current = *head_ref;

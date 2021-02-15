@@ -14,6 +14,5 @@ typedef struct
 } ListPointer;
 
 void push(CellList** head, int val);
-int* getIDList(CellList *head_ref, int* length, int ignoreID);
 void printList(CellList* head, int row, int col);
 void clearGrid(ListPointer grid[][MAX_WIDTH]);

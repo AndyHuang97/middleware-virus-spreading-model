@@ -15,7 +15,8 @@ typedef struct {
 } Individual;
 
 void updatePosition(Individual *ind, int speed);
-int* findNeighbours(Individual ind, ListPointer grid[MAX_HEIGHT][MAX_WIDTH], int spreadDistance, int* neighboursLen, bool verbose);
+void updateIndividualCounters(Individual *ind, ListPointer grid[MAX_HEIGHT][MAX_WIDTH], Individual individuals[], int spreadDistance, bool verbose);
+bool infectedInCell(CellList *head_ref, Individual individuals[]);
 void printIndividualData(Individual ind);
 void printNeighbours(int id, int* neighbours, int len);
 MPI_Datatype serializeStruct();

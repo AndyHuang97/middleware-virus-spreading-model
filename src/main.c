@@ -50,9 +50,10 @@ int main(int argc, char const *argv[]) {
   
   // Initialization, should only be called once.
   Individual *local_arr = (Individual *)malloc(sizeof(Individual) * num_elements_per_proc);
-
   Individual *gather_array = (Individual *)malloc(sizeof(Individual) * POPULATION_SIZE);
-  
+  Individual *final_gather_array;
+
+  if (my_rank == 0) final_gather_array = (Individual *)malloc(sizeof(Individual) * POPULATION_SIZE);
 
   for (int t = 0; t < END_TIME; t += TIME_STEP) {
     printf("My rank %d: ", my_rank);
@@ -71,39 +72,35 @@ int main(int argc, char const *argv[]) {
     MPI_Allgather(local_arr, num_elements_per_proc, individual_type, gather_array, num_elements_per_proc, individual_type, MPI_COMM_WORLD);
 
     for (int i = 0; i < POPULATION_SIZE; i++) {
-      individuals[i] = gather_array[i];
-      Individual ind = individuals[i];
 
       /* if( my_rank == 0) {
         printf("(%d) GATHERED: ", t);
         printf("My rank %d: ", my_rank);
         printIndividualData(ind);
       } */
-      push(&grid[ind.row][ind.column].head, ind.ID);
+      push(&grid[gather_array[i].row][gather_array[i].column].head, gather_array[i].ID);
       
       printf("(%d) My rank %d ", t, my_rank);
-      printList(grid[ind.row][ind.column].head, ind.row, ind.column);
+      printList(grid[gather_array[i].row][gather_array[i].column].head, gather_array[i].row, gather_array[i].column);
     }
 
-    // Scatter updated individuals to compute neighbors
-    MPI_Scatter(individuals, num_elements_per_proc, individual_type, local_arr, num_elements_per_proc, individual_type, 0, MPI_COMM_WORLD);
-
-    int* neighbours = NULL; 
     for (int i = 0; i < num_elements_per_proc; i++) {
       printf("(%d) My rank %d: ", t, my_rank);
-      if (local_arr[i].isInfected) {
-        int neighboursLen = 0;
-        //TODO need to concatenate all neighbours in a big list and need constant frees
-        neighbours = findNeighbours(local_arr[i], grid, SPREAD_DISTANCE, &neighboursLen, VERBOSE);
-      }
+      updateIndividualCounters(&local_arr[i], grid, gather_array, SPREAD_DISTANCE, VERBOSE);
     }
-    //TODO need to gather all neighbours in one place and then scatter again to compute infections
-    // MPI_Gather has a fixed num_elements_per_proc ... maybe probe + send?
 
-    MPI_Gather(local_arr, num_elements_per_proc, individual_type, gather_array, num_elements_per_proc, individual_type, 0,  MPI_COMM_WORLD);
+    MPI_Gather(local_arr, num_elements_per_proc, individual_type, final_gather_array, num_elements_per_proc, individual_type, 0, MPI_COMM_WORLD);
 
-
-
+    if (my_rank == 0) {
+      for (int i = 0; i < POPULATION_SIZE; i++) {
+        individuals[i] = final_gather_array[i];
+        printIndividualData(individuals[i]);
+      }
+      // if (t == 60*60*24) {
+      
+      // }
+    }
+    
 
     MPI_Barrier(MPI_COMM_WORLD);
 

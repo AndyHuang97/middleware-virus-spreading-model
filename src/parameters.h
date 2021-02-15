@@ -6,3 +6,6 @@
 #define SPEED 2
 #define SPREAD_DISTANCE 1
 #define VERBOSE true
+#define SUSCEPTIBILITY_THR (60*60*24*90)
+#define INFECTION_THR (60*10)
+#define IMMUNITY_THR (60*60*24*10)
