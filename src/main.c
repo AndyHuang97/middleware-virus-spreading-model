@@ -38,6 +38,7 @@ int main(int argc, char const *argv[]) {
                         true,
                         0,
                         0,
+                        0,
                         rand_int(0, (MAX_HEIGHT - 1)),
                         rand_int(0, (MAX_WIDTH - 1))};
       individuals[i] = ind;

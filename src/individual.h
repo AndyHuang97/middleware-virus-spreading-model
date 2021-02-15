@@ -7,6 +7,7 @@ typedef struct {
   int ID;
   bool isInfected;
   bool isImmune;
+  int immunity_count;
   int infection_count;
   int susceptible_count;
   int row;
