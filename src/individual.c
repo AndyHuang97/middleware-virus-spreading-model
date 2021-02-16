@@ -28,7 +28,7 @@ void updatePosition(Individual *individual, int speed) {
           individual->row--;
         break;
       case DOWN:
-        if (individual->row == (MAX_HEIGHT - 1)) {
+        if (individual->row == (GRID_HEIGHT - 1)) {
           individual->row--;
           dir = UP;
         } else
@@ -42,7 +42,7 @@ void updatePosition(Individual *individual, int speed) {
           individual->column--;
         break;
       case RIGHT:
-        if (individual->column == (MAX_WIDTH - 1)) {
+        if (individual->column == (GRID_WIDTH - 1)) {
           individual->column--;
           dir = LEFT;
         } else
@@ -54,7 +54,7 @@ void updatePosition(Individual *individual, int speed) {
   }
 }
 
-void updateIndividualCounters(Individual *ind, Cell grid[MAX_HEIGHT][MAX_WIDTH], Individual individuals[], int spreadDistance, bool verbose) {
+void updateIndividualCounters(Individual *ind, Cell grid[GRID_HEIGHT][GRID_WIDTH], Individual individuals[], int spreadDistance, bool verbose) {
   // int bufferLen = 16;
   // int* neighbours = (int*) malloc(sizeof(int)*bufferLen);
   // *neighboursLen = 0;
@@ -81,7 +81,7 @@ void updateIndividualCounters(Individual *ind, Cell grid[MAX_HEIGHT][MAX_WIDTH],
         //TODO need to check that ind.ID is not inserted in the list
         //TODO need to check borders of grid
 
-        if ((ind->row + i >= 0 && ind->row + i < MAX_WIDTH) && (ind->column + j >= 0 && ind->column + j < MAX_HEIGHT)) {
+        if ((ind->row + i >= 0 && ind->row + i < GRID_WIDTH) && (ind->column + j >= 0 && ind->column + j < GRID_HEIGHT)) {
           // printf("Individual ID %d) at cell (%d,%d) checking neighbouring cell (%d,%d)\n", ind->ID, ind->row, ind->column, ind->row+i, ind->column+j);
           bool infection = infectedInCell(grid[ind->row + i][ind->column + j].head, individuals);
           if (infection) {

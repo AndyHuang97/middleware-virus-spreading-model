@@ -12,22 +12,32 @@
 
 int main(int argc, char const *argv[]) {
   srand(time(0));
-  char **lines = getCountryLines();
   MPI_Init(NULL, NULL);
   MPI_Datatype individual_type = serializeStruct();
 
   int my_rank, world_size;
   MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
   MPI_Comm_size(MPI_COMM_WORLD, &world_size);
-  Cell grid[MAX_HEIGHT][MAX_WIDTH];
+  Cell grid[GRID_HEIGHT][GRID_WIDTH];
   Individual individuals[POPULATION_SIZE];
 
   int num_elements_per_proc = POPULATION_SIZE / world_size;
 
   // Every process initialize a grid
-  for (int i = 0; i < MAX_HEIGHT; i++) {
-    for (int j = 0; j < MAX_WIDTH; j++) {
+  for (int i = 0; i < GRID_HEIGHT; i++) {
+    for (int j = 0; j < GRID_WIDTH; j++) {
       grid[i][j].head = NULL;
+    }
+  }
+
+  assignCountries(grid);
+
+  if (my_rank == 0) {
+    for (int row = 0; row < GRID_HEIGHT; row++) {
+      for (int columns = 0; columns < GRID_WIDTH; columns++) {
+        printf("%d\t", grid[row][columns].countryID);
+      }
+      printf("\n");
     }
   }
 
@@ -40,8 +50,8 @@ int main(int argc, char const *argv[]) {
                         0,
                         0,
                         0,
-                        rand_int(0, (MAX_HEIGHT - 1)),
-                        rand_int(0, (MAX_WIDTH - 1))};
+                        rand_int(0, (GRID_HEIGHT - 1)),
+                        rand_int(0, (GRID_WIDTH - 1))};
       individuals[i] = ind;
       printIndividualData(individuals[i]);
       push(&grid[ind.row][ind.column].head, ind.ID);
@@ -97,14 +107,6 @@ int main(int argc, char const *argv[]) {
     }
 
     MPI_Barrier(MPI_COMM_WORLD);
-
-    // for (int i = 0; i < POPULATION_SIZE; i++) {
-    //   updatePosition(&individuals[i], SPEED);
-    //   Individual ind = individuals[i];
-    //   printIndividualData(ind);
-    //   push(&grid[ind.row][ind.column].head, ind.ID);
-    //   printList(grid[ind.row][ind.column].head, ind.row, ind.column);
-    // }
   }
 
   //Completely free the memory

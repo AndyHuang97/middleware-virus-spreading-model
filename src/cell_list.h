@@ -16,4 +16,5 @@ typedef struct
 
 void push(CellList** head, int val);
 void printList(CellList* head, int row, int col);
-void clearGrid(Cell grid[][MAX_WIDTH]);
+void clearGrid(Cell grid[][GRID_WIDTH]);
+void assignCountries(Cell grid[GRID_HEIGHT][GRID_WIDTH]);
