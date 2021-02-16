@@ -120,7 +120,7 @@ void printNeighbours(int id, int *neighbours, int len) {
   printf("]\n");
 }
 
-MPI_Datatype serializeStruct() {
+MPI_Datatype serializeIndividualStruct() {
   MPI_Datatype individual_type;
   int struct_length = 8;
   int lengths[8] = {1, 1, 1, 1, 1, 1, 1, 1};

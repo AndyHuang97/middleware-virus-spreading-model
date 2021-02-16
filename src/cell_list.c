@@ -47,7 +47,7 @@ void printList(CellList *head, int row, int col) {
   printf("\n");
 }
 
-void assignCountries(Cell grid[GRID_HEIGHT][GRID_WIDTH]) {
+int assignCountries(Cell grid[GRID_HEIGHT][GRID_WIDTH]) {
   int countriesByWidth = floor(GRID_WIDTH / COUNTRY_WIDTH);
   int countriesByHeight = floor(GRID_HEIGHT / COUNTRY_HEIGHT);
 
@@ -85,5 +85,5 @@ void assignCountries(Cell grid[GRID_HEIGHT][GRID_WIDTH]) {
       grid[i][j].countryID = countriesCount;
     }
   }
-
+  return countriesCount;
 }

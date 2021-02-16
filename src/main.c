@@ -6,6 +6,7 @@
 #include <time.h>
 
 //#include "cell_list.h"
+#include "country_stats.h"
 #include "individual.h"
 #include "parameters.h"
 #include "utils.h"
@@ -13,7 +14,10 @@
 int main(int argc, char const *argv[]) {
   srand(time(0));
   MPI_Init(NULL, NULL);
-  MPI_Datatype individual_type = serializeStruct();
+  MPI_Datatype individual_type = serializeIndividualStruct();
+  MPI_Datatype country_stats_type = serializeCountryStatsStruct();
+  MPI_Op country_stats_op;
+  MPI_Op_create(&country_stats_sum, 1, &country_stats_op);
 
   int my_rank, world_size;
   MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
@@ -30,7 +34,7 @@ int main(int argc, char const *argv[]) {
     }
   }
 
-  assignCountries(grid);
+  int countriesCount = assignCountries(grid);
 
   if (my_rank == 0) {
     for (int row = 0; row < GRID_HEIGHT; row++) {
@@ -92,7 +96,7 @@ int main(int argc, char const *argv[]) {
 
     for (int i = 0; i < num_elements_per_proc; i++) {
       updateIndividualCounters(&local_arr[i], grid, gather_array, SPREAD_DISTANCE, VERBOSE);
-    }
+        }
 
     MPI_Gather(local_arr, num_elements_per_proc, individual_type, final_gather_array, num_elements_per_proc, individual_type, 0, MPI_COMM_WORLD);
 
@@ -118,5 +122,7 @@ int main(int argc, char const *argv[]) {
   free(local_arr);
 
   MPI_Type_free(&individual_type);
+  MPI_Type_free(&country_stats_type);
+  MPI_Op_free(&country_stats_op);
   MPI_Finalize();
 }

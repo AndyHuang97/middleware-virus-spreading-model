@@ -20,4 +20,4 @@ void updateIndividualCounters(Individual *ind, Cell grid[GRID_HEIGHT][GRID_WIDTH
 bool infectedInCell(CellList *head_ref, Individual individuals[]);
 void printIndividualData(Individual ind);
 void printNeighbours(int id, int *neighbours, int len);
-MPI_Datatype serializeStruct();
+MPI_Datatype serializeIndividualStruct();
