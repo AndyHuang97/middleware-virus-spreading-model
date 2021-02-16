@@ -27,7 +27,7 @@ void deleteList(CellList **head_ref) {
   *head_ref = NULL;
 }
 
-void clearGrid(ListPointer grid[][MAX_WIDTH]) {
+void clearGrid(Cell grid[][MAX_WIDTH]) {
   for (int i = 0; i < MAX_HEIGHT; i++) {
     for (int j = 0; j < MAX_WIDTH; j++) {
       deleteList(&grid[i][j].head);

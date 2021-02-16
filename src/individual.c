@@ -54,7 +54,7 @@ void updatePosition(Individual *individual, int speed) {
   }
 }
 
-void updateIndividualCounters(Individual *ind, ListPointer grid[MAX_HEIGHT][MAX_WIDTH], Individual individuals[], int spreadDistance, bool verbose) {
+void updateIndividualCounters(Individual *ind, Cell grid[MAX_HEIGHT][MAX_WIDTH], Individual individuals[], int spreadDistance, bool verbose) {
   // int bufferLen = 16;
   // int* neighbours = (int*) malloc(sizeof(int)*bufferLen);
   // *neighboursLen = 0;

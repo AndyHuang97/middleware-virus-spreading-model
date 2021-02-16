@@ -10,9 +10,10 @@ typedef struct CellList_t CellList;
 //It contains the pointer to the head of the associated list
 typedef struct
 {
+  int countryID;
   CellList* head;
-} ListPointer;
+} Cell;
 
 void push(CellList** head, int val);
 void printList(CellList* head, int row, int col);
-void clearGrid(ListPointer grid[][MAX_WIDTH]);
+void clearGrid(Cell grid[][MAX_WIDTH]);

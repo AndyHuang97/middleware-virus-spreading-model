@@ -12,13 +12,14 @@
 
 int main(int argc, char const *argv[]) {
   srand(time(0));
+  char **lines = getCountryLines();
   MPI_Init(NULL, NULL);
   MPI_Datatype individual_type = serializeStruct();
 
   int my_rank, world_size;
   MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
   MPI_Comm_size(MPI_COMM_WORLD, &world_size);
-  ListPointer grid[MAX_HEIGHT][MAX_WIDTH];
+  Cell grid[MAX_HEIGHT][MAX_WIDTH];
   Individual individuals[POPULATION_SIZE];
 
   int num_elements_per_proc = POPULATION_SIZE / world_size;
