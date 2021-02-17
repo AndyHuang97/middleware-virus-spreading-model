@@ -7,11 +7,16 @@
 
 //#include "cell_list.h"
 #include "country_stats.h"
-#include "individual.h"
+//#include "individual.h"
 #include "parameters.h"
 #include "utils.h"
 
 int main(int argc, char const *argv[]) {
+  // to store execution time of code
+  double time_spent = 0.0;
+
+  clock_t begin = clock();
+
   srand(time(0));
   MPI_Init(NULL, NULL);
   MPI_Datatype individual_type = serializeIndividualStruct();
@@ -57,7 +62,7 @@ int main(int argc, char const *argv[]) {
                         rand_int(0, (GRID_HEIGHT - 1)),
                         rand_int(0, (GRID_WIDTH - 1))};
       individuals[i] = ind;
-      printIndividualData(individuals[i]);
+      //printIndividualData(individuals[i]);
       push(&grid[ind.row][ind.column].head, ind.ID);
       //printList(grid[ind.row][ind.column].head, ind.row, ind.column);
     }
@@ -94,18 +99,33 @@ int main(int argc, char const *argv[]) {
       }
     }
 
+    CountryStats localStats[countriesCount];
+    memset(localStats, 0, sizeof(localStats));
+    
     for (int i = 0; i < num_elements_per_proc; i++) {
       updateIndividualCounters(&local_arr[i], grid, gather_array, SPREAD_DISTANCE, VERBOSE);
-        }
+      updateCountryStats(&local_arr[i], grid, localStats, my_rank, t, VERBOSE);
+    }
 
     MPI_Gather(local_arr, num_elements_per_proc, individual_type, final_gather_array, num_elements_per_proc, individual_type, 0, MPI_COMM_WORLD);
+    // Reduce all of the local sums into the global sum
+    CountryStats globalStats[countriesCount];
+    memset(globalStats, 0, sizeof(globalStats));
+
+    MPI_Reduce(localStats, globalStats, countriesCount, country_stats_type, country_stats_op, 0, MPI_COMM_WORLD);
 
     if (my_rank == 0) {
       for (int i = 0; i < POPULATION_SIZE; i++) {
         individuals[i] = final_gather_array[i];
-        if (t % (60 * 60 * 24 * 7) == 0) {
-          printf("FINAL (R: %d, t: %d) ", my_rank, t);
-          printIndividualData(individuals[i]);
+        if (t % (60 * 10) == 0) {
+          //printf("FINAL (R: %d, t: %d) ", my_rank, t);
+          //printIndividualData(individuals[i]);
+        }
+      }
+
+      if (t % (60 * 10) == 0) {
+        for (int i = 0; i < countriesCount; i++) {
+          printf("FINAL (R: %d, t: %d) GLOBAL STATS %d) infected: %d, immune: %d, susceptible: %d\n", my_rank, t, i, globalStats[i].infected, globalStats[i].immune, globalStats[i].susceptible);
         }
       }
     }
@@ -125,4 +145,11 @@ int main(int argc, char const *argv[]) {
   MPI_Type_free(&country_stats_type);
   MPI_Op_free(&country_stats_op);
   MPI_Finalize();
+
+  clock_t end = clock();
+  time_spent += (double)(end - begin) / CLOCKS_PER_SEC;
+ 
+  printf("Time elpased is %f seconds\n", time_spent);
+
+  return 0;
 }

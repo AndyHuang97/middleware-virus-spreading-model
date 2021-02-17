@@ -85,5 +85,5 @@ int assignCountries(Cell grid[GRID_HEIGHT][GRID_WIDTH]) {
       grid[i][j].countryID = countriesCount;
     }
   }
-  return countriesCount;
+  return countriesCount+1;
 }

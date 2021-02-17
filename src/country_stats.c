@@ -2,18 +2,12 @@
 
 #include <mpi.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 MPI_Datatype serializeCountryStatsStruct() {
   MPI_Datatype country_stats_type;
   int struct_length = 3;
   int lengths[3] = {1, 1, 1};
-  // const MPI_Aint displacements[7] = {0,
-  //                                    sizeof(int),
-  //                                    sizeof(int) + sizeof(bool),
-  //                                    sizeof(int) + (2 * sizeof(bool)),
-  //                                    (2 * sizeof(int)) + (2 * sizeof(bool)),
-  //                                    (3 * sizeof(int)) + (2 * sizeof(bool)),
-  //                                    (4 * sizeof(int)) + (2 * sizeof(bool))};
 
   MPI_Aint displacements[3];
   displacements[0] = offsetof(CountryStats, infected);
@@ -35,6 +29,23 @@ void country_stats_sum(void* inputBuffer, void* outputBuffer, int* len, MPI_Data
     output[i].infected += input[i].infected;
     output[i].immune += input[i].immune;
     output[i].susceptible += input[i].susceptible;
+  }
+}
+
+void updateCountryStats(Individual *ind, Cell grid[GRID_HEIGHT][GRID_WIDTH], CountryStats *localStats, int my_rank, int t, bool verbose) {
+  int countryID = grid[ind->row][ind->column].countryID;
+
+  if (ind->isInfected) {
+    localStats[countryID].infected += 1;
+    if (t % (60 *10) == 0 && verbose) printf("(R: %d, t: %d) country %d) infected +1\n", my_rank, t, countryID);
+  }
+  else if (ind->isImmune) {
+    localStats[countryID].immune += 1;
+    if (t % (60 * 10) == 0 && verbose) printf("(R: %d, t: %d) country %d) immune +1\n", my_rank, t, countryID);
+  }
+  else {
+    localStats[countryID].susceptible += 1;
+    if (t % (60 * 10) == 0 && verbose) printf("(R: %d, t: %d) country %d) susceptible +1\n", my_rank, t, countryID);
   }
 }
 
