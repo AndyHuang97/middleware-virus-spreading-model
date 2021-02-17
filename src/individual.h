@@ -1,5 +1,6 @@
 #include <mpi.h>
 #include <stdbool.h>
+
 #include "cell_list.h"
 #include "parameters.h"
 
@@ -15,8 +16,8 @@ typedef struct {
 } Individual;
 
 void updatePosition(Individual *ind, int speed);
-void updateIndividualCounters(Individual *ind, ListPointer grid[MAX_HEIGHT][MAX_WIDTH], Individual individuals[], int spreadDistance, bool verbose);
+void updateIndividualCounters(Individual *ind, Cell grid[GRID_HEIGHT][GRID_WIDTH], Individual individuals[], int spreadDistance, bool verbose);
 bool infectedInCell(CellList *head_ref, Individual individuals[]);
-void printIndividualData(Individual ind);
-void printNeighbours(int id, int* neighbours, int len);
-MPI_Datatype serializeStruct();
+void printIndividualData(Individual ind, int countryID);
+void printNeighbours(int id, int *neighbours, int len);
+MPI_Datatype serializeIndividualStruct();
