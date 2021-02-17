@@ -12,13 +12,14 @@
 #include "utils.h"
 
 int main(int argc, char const *argv[]) {
-  // to store execution time of code
-  double time_spent = 0.0;
-
-  clock_t begin = clock();
+  
 
   srand(time(0));
   MPI_Init(NULL, NULL);
+  // to store execution time of code
+  double time_spent = 0.0;
+  clock_t begin = clock();
+
   MPI_Datatype individual_type = serializeIndividualStruct();
   MPI_Datatype country_stats_type = serializeCountryStatsStruct();
   MPI_Op country_stats_op;
@@ -31,6 +32,20 @@ int main(int argc, char const *argv[]) {
   Individual individuals[POPULATION_SIZE];
 
   int num_elements_per_proc = POPULATION_SIZE / world_size;
+
+  // Scatterv and Gatherv setup
+  int *displs, *scounts;
+  displs = (int *)malloc(world_size*sizeof(Individual)*num_elements_per_proc);
+  scounts = (int *)malloc(world_size*sizeof(int));
+  for (int i=0; i<world_size; ++i) {
+      displs[i] = i * num_elements_per_proc;
+      if (i != world_size-1) {
+        scounts[i] = num_elements_per_proc;
+      } else {
+        scounts[i] = POPULATION_SIZE - (world_size-1) * num_elements_per_proc;
+      }
+      printf("%d) scounts: %d, displs: %d\n", i, scounts[i], displs[i]);
+  }
 
   // Every process initialize a grid
   for (int i = 0; i < GRID_HEIGHT; i++) {
@@ -69,7 +84,7 @@ int main(int argc, char const *argv[]) {
   }
 
   // Initialization, should only be called once.
-  Individual *local_arr = (Individual *)malloc(sizeof(Individual) * num_elements_per_proc);
+  Individual *local_arr = (Individual *)malloc(sizeof(Individual) * scounts[my_rank]);
   Individual *gather_array = (Individual *)malloc(sizeof(Individual) * POPULATION_SIZE);
   Individual *final_gather_array;
 
@@ -79,7 +94,8 @@ int main(int argc, char const *argv[]) {
     if (my_rank == 0 && t % (60 * 60 * 24 * 7) == 0) printf("(R: %d) SIMULATION TIME: %d \n", my_rank, t);
     clearGrid(grid);
 
-    MPI_Scatter(individuals, num_elements_per_proc, individual_type, local_arr, num_elements_per_proc, individual_type, 0, MPI_COMM_WORLD);
+    // MPI_Scatter(individuals, num_elements_per_proc, individual_type, local_arr, num_elements_per_proc, individual_type, 0, MPI_COMM_WORLD);
+    MPI_Scatterv(individuals, scounts, displs, individual_type, local_arr, scounts[my_rank], individual_type, 0, MPI_COMM_WORLD);
 
     for (int i = 0; i < num_elements_per_proc; i++) {
       updatePosition(&local_arr[i], SPEED);
@@ -88,7 +104,8 @@ int main(int argc, char const *argv[]) {
     }
 
     // Every process receives all the updated indiduals
-    MPI_Allgather(local_arr, num_elements_per_proc, individual_type, gather_array, num_elements_per_proc, individual_type, MPI_COMM_WORLD);
+    // MPI_Allgather(local_arr, num_elements_per_proc, individual_type, gather_array, num_elements_per_proc, individual_type, MPI_COMM_WORLD);
+    MPI_Allgatherv(local_arr, scounts[my_rank], individual_type, gather_array, scounts, displs, individual_type, MPI_COMM_WORLD);
 
     for (int i = 0; i < POPULATION_SIZE; i++) {
       push(&grid[gather_array[i].row][gather_array[i].column].head, gather_array[i].ID);
@@ -107,11 +124,12 @@ int main(int argc, char const *argv[]) {
       updateCountryStats(&local_arr[i], grid, localStats, my_rank, t, VERBOSE);
     }
 
-    MPI_Gather(local_arr, num_elements_per_proc, individual_type, final_gather_array, num_elements_per_proc, individual_type, 0, MPI_COMM_WORLD);
+    // MPI_Gather(local_arr, num_elements_per_proc, individual_type, final_gather_array, num_elements_per_proc, individual_type, 0, MPI_COMM_WORLD);
+    MPI_Gatherv(local_arr, scounts[my_rank], individual_type, final_gather_array, scounts, displs, individual_type, 0, MPI_COMM_WORLD);
+    
     // Reduce all of the local sums into the global sum
     CountryStats globalStats[countriesCount];
     memset(globalStats, 0, sizeof(globalStats));
-
     MPI_Reduce(localStats, globalStats, countriesCount, country_stats_type, country_stats_op, 0, MPI_COMM_WORLD);
 
     if (my_rank == 0) {
@@ -123,7 +141,7 @@ int main(int argc, char const *argv[]) {
         }
       }
 
-      if (t % (60 * 10) == 0) {
+      if (t % (60 * 10) == 0 && VERBOSE) {
         for (int i = 0; i < countriesCount; i++) {
           printf("FINAL (R: %d, t: %d) GLOBAL STATS %d) infected: %d, immune: %d, susceptible: %d\n", my_rank, t, i, globalStats[i].infected, globalStats[i].immune, globalStats[i].susceptible);
         }
@@ -140,6 +158,8 @@ int main(int argc, char const *argv[]) {
   free(gather_array);
   clearGrid(grid);
   free(local_arr);
+  free(displs);
+  free(scounts);
 
   MPI_Type_free(&individual_type);
   MPI_Type_free(&country_stats_type);
@@ -147,8 +167,8 @@ int main(int argc, char const *argv[]) {
   MPI_Finalize();
 
   clock_t end = clock();
+
   time_spent += (double)(end - begin) / CLOCKS_PER_SEC;
- 
   printf("Time elpased is %f seconds\n", time_spent);
 
   return 0;

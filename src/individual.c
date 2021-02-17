@@ -55,9 +55,6 @@ void updatePosition(Individual *individual, int speed) {
 }
 
 void updateIndividualCounters(Individual *ind, Cell grid[GRID_HEIGHT][GRID_WIDTH], Individual individuals[], int spreadDistance, bool verbose) {
-  // int bufferLen = 16;
-  // int* neighbours = (int*) malloc(sizeof(int)*bufferLen);
-  // *neighboursLen = 0;
 
   if (ind->isImmune) {
     ind->susceptible_count += TIME_STEP;
@@ -77,9 +74,6 @@ void updateIndividualCounters(Individual *ind, Cell grid[GRID_HEIGHT][GRID_WIDTH
   } else {
     for (int i = -spreadDistance; i <= spreadDistance; i++) {
       for (int j = -spreadDistance; j <= spreadDistance; j++) {
-        // int cellLen = 0;
-        //TODO need to check that ind.ID is not inserted in the list
-        //TODO need to check borders of grid
 
         if ((ind->row + i >= 0 && ind->row + i < GRID_WIDTH) && (ind->column + j >= 0 && ind->column + j < GRID_HEIGHT)) {
           // printf("Individual ID %d) at cell (%d,%d) checking neighbouring cell (%d,%d)\n", ind->ID, ind->row, ind->column, ind->row+i, ind->column+j);
