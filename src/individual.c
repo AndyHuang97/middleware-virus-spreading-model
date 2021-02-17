@@ -8,9 +8,9 @@
 
 #include "utils.h"
 
-void printIndividualData(Individual ind) {
-  printf("ID: %d, (posX: %d, posY: %d), isInfected: %d, isImmune: %d, infection_count: %d, immunity_count: %d, susceptible_count: %d\n",
-         ind.ID, ind.row, ind.column, ind.isInfected, ind.isImmune, ind.infection_count, ind.immunity_count, ind.susceptible_count);
+void printIndividualData(Individual ind, int countryID) {
+  printf("ID: %d, (row: %d, col: %d) Country: %d \t isInfected: %d, isImmune: %d, infection_count: %d, immunity_count: %d, susceptible_count: %d\n",
+         ind.ID, ind.row, ind.column, countryID, ind.isInfected, ind.isImmune, ind.infection_count, ind.immunity_count, ind.susceptible_count);
 }
 
 // Updates the position of an individual by moving in a random direction
@@ -55,7 +55,6 @@ void updatePosition(Individual *individual, int speed) {
 }
 
 void updateIndividualCounters(Individual *ind, Cell grid[GRID_HEIGHT][GRID_WIDTH], Individual individuals[], int spreadDistance, bool verbose) {
-
   if (ind->isImmune) {
     ind->susceptible_count += TIME_STEP;
     if (ind->susceptible_count >= SUSCEPTIBILITY_THR) {
@@ -74,8 +73,7 @@ void updateIndividualCounters(Individual *ind, Cell grid[GRID_HEIGHT][GRID_WIDTH
   } else {
     for (int i = -spreadDistance; i <= spreadDistance; i++) {
       for (int j = -spreadDistance; j <= spreadDistance; j++) {
-
-        if ((ind->row + i >= 0 && ind->row + i < GRID_WIDTH) && (ind->column + j >= 0 && ind->column + j < GRID_HEIGHT)) {
+        if ((ind->row + i >= 0 && ind->row + i < GRID_HEIGHT) && (ind->column + j >= 0 && ind->column + j < GRID_WIDTH)) {
           // printf("Individual ID %d) at cell (%d,%d) checking neighbouring cell (%d,%d)\n", ind->ID, ind->row, ind->column, ind->row+i, ind->column+j);
           bool infection = infectedInCell(grid[ind->row + i][ind->column + j].head, individuals);
           if (infection) {
