@@ -34,7 +34,8 @@ int main(int argc, char const *argv[]) {
   //TODO: Fix displacement bug
   // Scatterv and Gatherv setup
   int *displs, *scounts;
-  displs = (int *)malloc(world_size * sizeof(Individual) * num_elements_per_proc);
+
+  displs = (int *)malloc(world_size * sizeof(int));
   scounts = (int *)malloc(world_size * sizeof(int));
   for (int i = 0; i < world_size; ++i) {
     displs[i] = i * num_elements_per_proc;
@@ -107,7 +108,7 @@ int main(int argc, char const *argv[]) {
     // MPI_Scatter(individuals, num_elements_per_proc, individual_type, local_arr, num_elements_per_proc, individual_type, 0, MPI_COMM_WORLD);
     MPI_Scatterv(individuals, scounts, displs, individual_type, local_arr, scounts[my_rank], individual_type, 0, MPI_COMM_WORLD);
 
-    for (int i = 0; i < num_elements_per_proc; i++) {
+    for (int i = 0; i < scounts[my_rank]; i++) {
       updatePosition(&local_arr[i]);
       printf("(R: %d, t: %d) ", my_rank, t);
       printIndividualData(local_arr[i], grid[local_arr[i].row][local_arr[i].column].countryID);
@@ -124,7 +125,7 @@ int main(int argc, char const *argv[]) {
     CountryStats localStats[countriesCount];
     memset(localStats, 0, sizeof(localStats));
 
-    for (int i = 0; i < num_elements_per_proc; i++) {
+    for (int i = 0; i < scounts[my_rank]; i++) {
       updateIndividualCounters(&local_arr[i], grid, gather_array, SPREAD_DISTANCE, VERBOSE);
       updateCountryStats(local_arr[i], grid, localStats, my_rank, t, VERBOSE);
     }
