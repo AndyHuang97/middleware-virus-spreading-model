@@ -67,7 +67,7 @@ int main(int argc, char const *argv[]) {
     printf("// INITIAL POPULATION // \n");
     for (int i = 0; i < POPULATION_SIZE; i++) {
       Individual ind = {i,
-                        rand() % 3 == 0 ? true : false,
+                        rand() % 4 == 0 ? true : false,
                         false,
                         0,
                         0,
@@ -123,6 +123,7 @@ int main(int argc, char const *argv[]) {
     if (my_rank == 0) memset(globalStats, 0, sizeof(globalStats));
     MPI_Reduce(localStats, globalStats, countriesCount, country_stats_type, country_stats_op, 0, MPI_COMM_WORLD);
 
+    bool noInfectedLeft = false;
     if (my_rank == 0) {
       for (int i = 0; i < POPULATION_SIZE; i++) {
         individuals[i] = final_gather_array[i];
@@ -137,6 +138,17 @@ int main(int argc, char const *argv[]) {
         for (int i = 0; i < countriesCount; i++) {
           printf("FINAL (R: %d, DAY: %d) COUNTRY STATS %d) infected: %d, immune: %d, susceptible: %d\n", my_rank, t / DAY, i, globalStats[i].infected, globalStats[i].immune, globalStats[i].susceptible);
         }
+        noInfectedLeft = !anyInfected(globalStats, countriesCount);
+        if (noInfectedLeft) printf("(R: %d, DAY: %d) No infected left, sending termination signal \n", my_rank, t / DAY);
+      }
+    }
+
+    if (t % DAY == 0) {
+      bool exitSimulation;
+      MPI_Allreduce(&noInfectedLeft, &exitSimulation, 1, MPI_C_BOOL, MPI_LOR, MPI_COMM_WORLD);
+      if (exitSimulation) {
+        printf("(R: %d, DAY: %d) EXITING SIMULATION: No infected left \n", my_rank, t / DAY);
+        break;
       }
     }
 

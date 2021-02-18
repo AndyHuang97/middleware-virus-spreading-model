@@ -46,3 +46,10 @@ void updateCountryStats(Individual ind, Cell grid[GRID_HEIGHT][GRID_WIDTH], Coun
     if (t % (60 * 10) == 0 && verbose) printf("(R: %d, t: %d) country %d) susceptible +1\n", my_rank, t, countryID);
   }
 }
+
+bool anyInfected(CountryStats globalStats[], int countryCount) {
+  for (int i = 0; i < countryCount; i++) {
+    if (globalStats[i].infected > 0) return true;
+  }
+  return false;
+}
