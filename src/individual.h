@@ -3,6 +3,7 @@
 
 #include "cell_list.h"
 #include "parameters.h"
+#include "utils.h"
 
 typedef struct {
   int ID;
@@ -14,6 +15,7 @@ typedef struct {
   int row;
   int column;
   int speed;
+  Direction direction;
 } Individual;
 
 void updatePosition(Individual *ind);

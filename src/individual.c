@@ -6,46 +6,41 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "utils.h"
-
 void printIndividualData(Individual ind, int countryID) {
-  printf("ID: %d, (row: %d, col: %d) Country: %d \t isInfected: %d, isImmune: %d, infection_count: %d, immunity_count: %d, susceptible_count: %d, speed: %d\n",
-         ind.ID, ind.row, ind.column, countryID, ind.isInfected, ind.isImmune, ind.infection_count, ind.immunity_count, ind.susceptible_count, ind.speed);
+  printf("ID: %d, (row: %d, col: %d) Country: %d \t isInfected: %d, isImmune: %d, infection_count: %d, immunity_count: %d, susceptible_count: %d, speed: %d, direction: %d\n",
+         ind.ID, ind.row, ind.column, countryID, ind.isInfected, ind.isImmune, ind.infection_count, ind.immunity_count, ind.susceptible_count, ind.speed, ind.direction);
 }
 
 // Updates the position of an individual by moving in a random direction
 // If the individual reaches the boundaries the direction is inverted
 void updatePosition(Individual *individual) {
-  Direction dir = (Direction)rand_int(0, 3);
-  printf("DIRECTION: %d\n", dir);
-
   for (int s = individual->speed; s > 0; s--) {
-    switch (dir) {
+    switch (individual->direction) {
       case UP:
         if (individual->row == 0) {
           individual->row++;
-          dir = DOWN;
+          individual->direction = DOWN;
         } else
           individual->row--;
         break;
       case DOWN:
         if (individual->row == (GRID_HEIGHT - 1)) {
           individual->row--;
-          dir = UP;
+          individual->direction = UP;
         } else
           individual->row++;
         break;
       case LEFT:
         if (individual->column == 0) {
           individual->column++;
-          dir = RIGHT;
+          individual->direction = RIGHT;
         } else
           individual->column--;
         break;
       case RIGHT:
         if (individual->column == (GRID_WIDTH - 1)) {
           individual->column--;
-          dir = LEFT;
+          individual->direction = LEFT;
         } else
           individual->column++;
         break;
@@ -115,16 +110,9 @@ void printNeighbours(int id, int *neighbours, int len) {
 
 MPI_Datatype serializeIndividualStruct() {
   MPI_Datatype individual_type;
-  int lengths[9] = {1, 1, 1, 1, 1, 1, 1, 1, 1};
-  // const MPI_Aint displacements[7] = {0,
-  //                                    sizeof(int),
-  //                                    sizeof(int) + sizeof(bool),
-  //                                    sizeof(int) + (2 * sizeof(bool)),
-  //                                    (2 * sizeof(int)) + (2 * sizeof(bool)),
-  //                                    (3 * sizeof(int)) + (2 * sizeof(bool)),
-  //                                    (4 * sizeof(int)) + (2 * sizeof(bool))};
+  int lengths[10] = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
 
-  MPI_Aint displacements[9];
+  MPI_Aint displacements[10];
   displacements[0] = offsetof(Individual, ID);
   displacements[1] = offsetof(Individual, isInfected);
   displacements[2] = offsetof(Individual, isImmune);
@@ -134,9 +122,10 @@ MPI_Datatype serializeIndividualStruct() {
   displacements[6] = offsetof(Individual, row);
   displacements[7] = offsetof(Individual, column);
   displacements[8] = offsetof(Individual, speed);
+  displacements[9] = offsetof(Individual, direction);
 
-  MPI_Datatype types[9] = {MPI_INT, MPI_C_BOOL, MPI_C_BOOL, MPI_INT, MPI_INT, MPI_INT, MPI_INT, MPI_INT, MPI_INT};
-  MPI_Type_create_struct(9, lengths, displacements, types, &individual_type);
+  MPI_Datatype types[10] = {MPI_INT, MPI_C_BOOL, MPI_C_BOOL, MPI_INT, MPI_INT, MPI_INT, MPI_INT, MPI_INT, MPI_INT, MPI_INT};
+  MPI_Type_create_struct(10, lengths, displacements, types, &individual_type);
   MPI_Type_commit(&individual_type);
 
   return individual_type;
