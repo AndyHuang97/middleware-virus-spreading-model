@@ -1,4 +1,5 @@
 #define POPULATION_SIZE 2000
+#define INITITAL_INFECTED 20
 #define GRID_HEIGHT 300
 #define GRID_WIDTH 300
 #define TIME_STEP (60 * 1)
