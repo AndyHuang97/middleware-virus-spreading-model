@@ -72,18 +72,22 @@ int assignCountries(Cell grid[GRID_HEIGHT][GRID_WIDTH]) {
     countriesCount++;
   }
 
-  //Assign all the remaining horizontal cells to a new country
-  for (int i = countriesByHeight * COUNTRY_HEIGHT; i < GRID_HEIGHT; i++) {
-    for (int j = 0; j < GRID_WIDTH; j++) {
-      grid[i][j].countryID = countriesCount;
+  if ((GRID_WIDTH % COUNTRY_WIDTH) != 0 || (GRID_HEIGHT % COUNTRY_HEIGHT) != 0) {
+    //Assign all the remaining horizontal cells to a new country
+    for (int i = countriesByHeight * COUNTRY_HEIGHT; i < GRID_HEIGHT; i++) {
+      for (int j = 0; j < GRID_WIDTH; j++) {
+        grid[i][j].countryID = countriesCount;
+      }
     }
+
+    //Assign the remaining vertial cells to a new country
+    for (int i = 0; i < countriesByHeight * COUNTRY_HEIGHT; i++) {
+      for (int j = countriesByWidth * COUNTRY_WIDTH; j < GRID_WIDTH; j++) {
+        grid[i][j].countryID = countriesCount;
+      }
+    }
+    countriesCount++;
   }
 
-  //Assign the remaining vertial cells to a new country
-  for (int i = 0; i < countriesByHeight * COUNTRY_HEIGHT; i++) {
-    for (int j = countriesByWidth * COUNTRY_WIDTH; j < GRID_WIDTH; j++) {
-      grid[i][j].countryID = countriesCount;
-    }
-  }
-  return countriesCount+1;
+  return countriesCount;
 }
