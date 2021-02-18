@@ -65,9 +65,10 @@ int main(int argc, char const *argv[]) {
 
   if (my_rank == 0) {
     printf("// INITIAL POPULATION // \n");
+    int assignedInfected = 0;
     for (int i = 0; i < POPULATION_SIZE; i++) {
       Individual ind = {i,
-                        rand() % 4 == 0 ? true : false,
+                        (assignedInfected < INITITAL_INFECTED) ? true : false,
                         false,
                         0,
                         0,
@@ -76,7 +77,8 @@ int main(int argc, char const *argv[]) {
                         rand_int(0, (GRID_WIDTH - 1))};
       individuals[i] = ind;
       push(&grid[ind.row][ind.column].head, ind.ID);
-      printIndividualData(ind, grid[ind.row][ind.column].countryID);
+      //printIndividualData(ind, grid[ind.row][ind.column].countryID);
+      assignedInfected++;
       //printList(grid[ind.row][ind.column].head, ind.row, ind.column);
     }
   }
