@@ -14,7 +14,7 @@
 int main(int argc, char const *argv[]) {
   double time_spent = 0.0;
   clock_t begin = clock();
-  srand(time(0));
+  srand(0);
   MPI_Init(NULL, NULL);
   // to store execution time of code
 
@@ -74,10 +74,11 @@ int main(int argc, char const *argv[]) {
                         0,
                         0,
                         rand_int(0, (GRID_HEIGHT - 1)),
-                        rand_int(0, (GRID_WIDTH - 1))};
+                        rand_int(0, (GRID_WIDTH - 1)),
+                        rand_int(1, MAX_SPEED)};
       individuals[i] = ind;
       push(&grid[ind.row][ind.column].head, ind.ID);
-      //printIndividualData(ind, grid[ind.row][ind.column].countryID);
+      printIndividualData(ind, grid[ind.row][ind.column].countryID);
       assignedInfected++;
       //printList(grid[ind.row][ind.column].head, ind.row, ind.column);
     }
@@ -98,7 +99,8 @@ int main(int argc, char const *argv[]) {
     MPI_Scatterv(individuals, scounts, displs, individual_type, local_arr, scounts[my_rank], individual_type, 0, MPI_COMM_WORLD);
 
     for (int i = 0; i < num_elements_per_proc; i++) {
-      updatePosition(&local_arr[i], SPEED);
+      updatePosition(&local_arr[i]);
+      printIndividualData(local_arr[i], grid[local_arr[i].row][local_arr[i].column].countryID);
     }
 
     // Every process receives all the updated indiduals
