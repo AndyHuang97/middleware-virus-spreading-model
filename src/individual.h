@@ -19,7 +19,10 @@ typedef struct {
 } Individual;
 
 void updatePosition(Individual *ind);
-void updateIndividualCounters(Individual *ind, Cell grid[GRID_HEIGHT][GRID_WIDTH], Individual individuals[], int spreadDistance, bool verbose);
+void searchAndUpdateOnSusceptibles(Individual *ind, Cell grid[GRID_HEIGHT][GRID_WIDTH], Individual individuals[], int spreadDistance);
+void searchSusceptibleOnInfected(Individual *ind, Cell grid[GRID_HEIGHT][GRID_WIDTH], Individual individuals[], int spreadDistance, bool susceptibleFlags[]);
+void updateSuscpetibleFlags(CellList *head, Individual individuals[], bool susceptibleFlags[]);
+void updateIndividualCounters(Individual *ind, bool updateInfectionCounter);
 bool infectedInCell(CellList *head_ref, Individual individuals[]);
 void printIndividualData(Individual ind, int countryID);
 void printNeighbours(int id, int *neighbours, int len);

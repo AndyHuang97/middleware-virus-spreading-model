@@ -53,3 +53,12 @@ bool anyInfected(CountryStats globalStats[], int countryCount) {
   }
   return false;
 }
+
+int getTotalSusceptible(CountryStats globalStats[], int countryCount) {
+  int total = 0;
+  for (int i = 0; i < countryCount; i++) {
+    total += globalStats[i].susceptible;
+  }
+
+  return total;
+}

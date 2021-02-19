@@ -31,7 +31,6 @@ int main(int argc, char const *argv[]) {
 
   int num_elements_per_proc = POPULATION_SIZE / world_size;
 
-  //TODO: Fix displacement bug
   // Scatterv and Gatherv setup
   int *displs, *scounts;
 
@@ -91,6 +90,7 @@ int main(int argc, char const *argv[]) {
   Individual *local_arr = (Individual *)malloc(sizeof(Individual) * scounts[my_rank]);
   Individual *gather_array = (Individual *)malloc(sizeof(Individual) * POPULATION_SIZE);
   Individual *final_gather_array;
+  bool searchOnInfected = (((float)(POPULATION_SIZE - INITITAL_INFECTED) / (float)POPULATION_SIZE) > DENSITY_THR) ? true : false;
 
   if (my_rank == 0) final_gather_array = (Individual *)malloc(sizeof(Individual) * POPULATION_SIZE);
 
@@ -121,13 +121,43 @@ int main(int argc, char const *argv[]) {
     for (int i = 0; i < POPULATION_SIZE; i++) {
       push(&grid[gather_array[i].row][gather_array[i].column].head, gather_array[i].ID);
     }
-
     CountryStats localStats[countriesCount];
     memset(localStats, 0, sizeof(localStats));
 
-    for (int i = 0; i < scounts[my_rank]; i++) {
-      updateIndividualCounters(&local_arr[i], grid, gather_array, SPREAD_DISTANCE, VERBOSE);
-      updateCountryStats(local_arr[i], grid, localStats, my_rank, t, VERBOSE);
+    if (searchOnInfected) {
+      bool susceptibleFlags[POPULATION_SIZE];
+      memset(susceptibleFlags, false, sizeof(susceptibleFlags));
+      for (int i = 0; i < scounts[my_rank]; i++) {
+        searchSusceptibleOnInfected(&local_arr[i], grid, gather_array, SPREAD_DISTANCE, susceptibleFlags);
+      }
+
+      // printf("(R:%d, t:%d) FLAGS:", my_rank, t);
+      // for (int i = 0; i < POPULATION_SIZE; i++) {
+      //   printf("%d:%d ", i, susceptibleFlags[i]);
+      // }
+      // printf("\n");
+
+      bool reducedSusceptibleFlags[POPULATION_SIZE];
+      memset(reducedSusceptibleFlags, false, sizeof(reducedSusceptibleFlags));
+      MPI_Allreduce(&susceptibleFlags, &reducedSusceptibleFlags, POPULATION_SIZE, MPI_C_BOOL, MPI_LOR, MPI_COMM_WORLD);
+
+      // printf("(R:%d, t:%d) ", my_rank, t);
+      // printf("REDUCED FLAGS:");
+      // for (int i = 0; i < POPULATION_SIZE; i++) {
+      //   printf("%d:%d ", i, reducedSusceptibleFlags[i]);
+      // }
+      // printf("\n");
+
+      for (int i = 0; i < scounts[my_rank]; i++) {
+        updateIndividualCounters(&local_arr[i], reducedSusceptibleFlags[local_arr[i].ID]);
+        updateCountryStats(local_arr[i], grid, localStats, my_rank, t, VERBOSE);
+      }
+
+    } else {
+      for (int i = 0; i < scounts[my_rank]; i++) {
+        searchAndUpdateOnSusceptibles(&local_arr[i], grid, gather_array, SPREAD_DISTANCE);
+        updateCountryStats(local_arr[i], grid, localStats, my_rank, t, VERBOSE);
+      }
     }
 
     // MPI_Gather(local_arr, num_elements_per_proc, individual_type, final_gather_array, num_elements_per_proc, individual_type, 0, MPI_COMM_WORLD);
@@ -138,20 +168,25 @@ int main(int argc, char const *argv[]) {
     if (my_rank == 0) memset(globalStats, 0, sizeof(globalStats));
     MPI_Reduce(localStats, globalStats, countriesCount, country_stats_type, country_stats_op, 0, MPI_COMM_WORLD);
 
+    if (my_rank == 0) {
+      int totalSusceptible = getTotalSusceptible(globalStats, countriesCount);
+      searchOnInfected = ((float)totalSusceptible / POPULATION_SIZE > DENSITY_THR) ? true : false;
+    }
+
+    MPI_Bcast(&searchOnInfected, 1, MPI_C_BOOL, 0, MPI_COMM_WORLD);
+    //printf("(R: %d, t: %d) SEARCH STRATEGY: %d\n", my_rank, t, searchOnInfected);
+
     bool noInfectedLeft = false;
     if (my_rank == 0) {
       for (int i = 0; i < POPULATION_SIZE; i++) {
         individuals[i] = final_gather_array[i];
-        // if (t % DAY == 0) {
-        //   printf("FINAL (R: %d, t: %d) ", my_rank, t);
-        //   Individual ind = individuals[i];
-        //   printIndividualData(ind, grid[ind.row][ind.column].countryID);
-        // }
+        // printf("(R: %d, t:%d) ", my_rank, t);
+        // printIndividualData(individuals[i], grid[individuals[i].row][individuals[i].column].countryID);
       }
 
-      if (t % DAY == 0) {
+      if (t > 0 && t % DAY == 0) {
         for (int i = 0; i < countriesCount; i++) {
-          printf("FINAL (R: %d, DAY: %d) COUNTRY STATS %d) infected: %d, immune: %d, susceptible: %d\n", my_rank, t / DAY, i, globalStats[i].infected, globalStats[i].immune, globalStats[i].susceptible);
+          printf("FINAL (R: %d, DAY: %d) COUNTRY STATS %d) infected: %d, immune: %d, susceptible: %d, strategy: %d\n", my_rank, t / DAY, i, globalStats[i].infected, globalStats[i].immune, globalStats[i].susceptible, searchOnInfected);
         }
         noInfectedLeft = !anyInfected(globalStats, countriesCount);
         if (noInfectedLeft) printf("(R: %d, DAY: %d) No infected left, sending termination signal \n", my_rank, t / DAY);
