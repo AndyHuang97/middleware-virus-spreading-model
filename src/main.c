@@ -81,7 +81,7 @@ int main(int argc, char const *argv[]) {
                         0};
       individuals[i] = ind;
       push(&grid[ind.row][ind.column].head, ind.ID);
-      printIndividualData(ind, grid[ind.row][ind.column].countryID);
+      //printIndividualData(ind, grid[ind.row][ind.column].countryID);
       assignedInfected++;
       //printList(grid[ind.row][ind.column].head, ind.row, ind.column);
     }
@@ -110,8 +110,8 @@ int main(int argc, char const *argv[]) {
 
     for (int i = 0; i < scounts[my_rank]; i++) {
       updatePosition(&local_arr[i]);
-      printf("(R: %d, t: %d) ", my_rank, t);
-      printIndividualData(local_arr[i], grid[local_arr[i].row][local_arr[i].column].countryID);
+      // printf("(R: %d, t: %d) ", my_rank, t);
+      // printIndividualData(local_arr[i], grid[local_arr[i].row][local_arr[i].column].countryID);
     }
 
     // Every process receives all the updated indiduals
