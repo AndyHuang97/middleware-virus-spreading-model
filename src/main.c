@@ -9,12 +9,12 @@
 #include "country_stats.h"
 //#include "individual.h"
 #include "parameters.h"
-#include "utils.h"
+//#include "utils.h"
 
 int main(int argc, char const *argv[]) {
   double time_spent = 0.0;
   clock_t begin = clock();
-  srand(time(0));
+  srand(0);
   MPI_Init(NULL, NULL);
   // to store execution time of code
 
@@ -31,9 +31,11 @@ int main(int argc, char const *argv[]) {
 
   int num_elements_per_proc = POPULATION_SIZE / world_size;
 
+  //TODO: Fix displacement bug
   // Scatterv and Gatherv setup
   int *displs, *scounts;
-  displs = (int *)malloc(world_size * sizeof(Individual) * num_elements_per_proc);
+
+  displs = (int *)malloc(world_size * sizeof(int));
   scounts = (int *)malloc(world_size * sizeof(int));
   for (int i = 0; i < world_size; ++i) {
     displs[i] = i * num_elements_per_proc;
@@ -74,7 +76,9 @@ int main(int argc, char const *argv[]) {
                         0,
                         0,
                         rand_int(0, (GRID_HEIGHT - 1)),
-                        rand_int(0, (GRID_WIDTH - 1))};
+                        rand_int(0, (GRID_WIDTH - 1)),
+                        rand_int(1, MAX_SPEED),
+                        0};
       individuals[i] = ind;
       push(&grid[ind.row][ind.column].head, ind.ID);
       //printIndividualData(ind, grid[ind.row][ind.column].countryID);
@@ -94,11 +98,20 @@ int main(int argc, char const *argv[]) {
     if (my_rank == 0 && t % DAY == 0) printf("(R: %d) SIMULATION DAY: %d \n", my_rank, t / DAY);
     clearGrid(grid);
 
+    if (my_rank == 0) {
+      for (int i = 0; i < POPULATION_SIZE; i++) {
+        Direction dir = (Direction)rand_int(0, 3);
+        individuals[i].direction = dir;
+      }
+    }
+
     // MPI_Scatter(individuals, num_elements_per_proc, individual_type, local_arr, num_elements_per_proc, individual_type, 0, MPI_COMM_WORLD);
     MPI_Scatterv(individuals, scounts, displs, individual_type, local_arr, scounts[my_rank], individual_type, 0, MPI_COMM_WORLD);
 
-    for (int i = 0; i < num_elements_per_proc; i++) {
-      updatePosition(&local_arr[i], SPEED);
+    for (int i = 0; i < scounts[my_rank]; i++) {
+      updatePosition(&local_arr[i]);
+      // printf("(R: %d, t: %d) ", my_rank, t);
+      // printIndividualData(local_arr[i], grid[local_arr[i].row][local_arr[i].column].countryID);
     }
 
     // Every process receives all the updated indiduals
@@ -112,7 +125,7 @@ int main(int argc, char const *argv[]) {
     CountryStats localStats[countriesCount];
     memset(localStats, 0, sizeof(localStats));
 
-    for (int i = 0; i < num_elements_per_proc; i++) {
+    for (int i = 0; i < scounts[my_rank]; i++) {
       updateIndividualCounters(&local_arr[i], grid, gather_array, SPREAD_DISTANCE, VERBOSE);
       updateCountryStats(local_arr[i], grid, localStats, my_rank, t, VERBOSE);
     }
