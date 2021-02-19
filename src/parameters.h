@@ -13,4 +13,4 @@
 #define COUNTRY_WIDTH 60
 #define DAY (60 * 60 * 24)
 #define END_TIME (DAY * 30 * 4)
-#define DENSITY_THR 0.15
+#define DENSITY_THR 0.9

@@ -54,10 +54,10 @@ bool anyInfected(CountryStats globalStats[], int countryCount) {
   return false;
 }
 
-int getTotalInfected(CountryStats globalStats[], int countryCount) {
+int getTotalSusceptible(CountryStats globalStats[], int countryCount) {
   int total = 0;
   for (int i = 0; i < countryCount; i++) {
-    total += globalStats[i].infected;
+    total += globalStats[i].susceptible;
   }
 
   return total;

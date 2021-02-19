@@ -90,7 +90,7 @@ int main(int argc, char const *argv[]) {
   Individual *local_arr = (Individual *)malloc(sizeof(Individual) * scounts[my_rank]);
   Individual *gather_array = (Individual *)malloc(sizeof(Individual) * POPULATION_SIZE);
   Individual *final_gather_array;
-  bool searchOnInfected = (((float)INITITAL_INFECTED / (float)POPULATION_SIZE) < DENSITY_THR) ? true : false;
+  bool searchOnInfected = (((float)(POPULATION_SIZE - INITITAL_INFECTED) / (float)POPULATION_SIZE) > DENSITY_THR) ? true : false;
 
   if (my_rank == 0) final_gather_array = (Individual *)malloc(sizeof(Individual) * POPULATION_SIZE);
 
@@ -169,8 +169,8 @@ int main(int argc, char const *argv[]) {
     MPI_Reduce(localStats, globalStats, countriesCount, country_stats_type, country_stats_op, 0, MPI_COMM_WORLD);
 
     if (my_rank == 0) {
-      int totalInfected = getTotalInfected(globalStats, countriesCount);
-      searchOnInfected = ((float)totalInfected / POPULATION_SIZE < DENSITY_THR) ? true : false;
+      int totalSusceptible = getTotalSusceptible(globalStats, countriesCount);
+      searchOnInfected = ((float)totalSusceptible / POPULATION_SIZE > DENSITY_THR) ? true : false;
     }
 
     MPI_Bcast(&searchOnInfected, 1, MPI_C_BOOL, 0, MPI_COMM_WORLD);
