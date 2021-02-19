@@ -50,7 +50,7 @@ void updatePosition(Individual *individual) {
   }
 }
 
-void updateIndividualCounters(Individual *ind, Cell grid[GRID_HEIGHT][GRID_WIDTH], Individual individuals[], int spreadDistance, bool verbose) {
+void searchAndUpdateOnSusceptibles(Individual *ind, Cell grid[GRID_HEIGHT][GRID_WIDTH], Individual individuals[], int spreadDistance) {
   if (ind->isImmune) {
     ind->susceptible_count += TIME_STEP;
     if (ind->susceptible_count >= SUSCEPTIBILITY_THR) {
@@ -84,6 +84,63 @@ void updateIndividualCounters(Individual *ind, Cell grid[GRID_HEIGHT][GRID_WIDTH
       }
     }
     // no infected in range
+    ind->infection_count = 0;
+    return;
+  }
+}
+
+void searchSusceptibleOnInfected(Individual *ind, Cell grid[GRID_HEIGHT][GRID_WIDTH], Individual individuals[], int spreadDistance, bool susceptibleFlags[]) {
+  if (!ind->isInfected)
+    return;
+  else {
+    for (int i = -spreadDistance; i <= spreadDistance; i++) {
+      for (int j = -spreadDistance; j <= spreadDistance; j++) {
+        if ((ind->row + i >= 0 && ind->row + i < GRID_HEIGHT) && (ind->column + j >= 0 && ind->column + j < GRID_WIDTH)) {
+          // printf("Individual ID %d) at cell (%d,%d) checking neighbouring cell (%d,%d)\n", ind->ID, ind->row, ind->column, ind->row+i, ind->column+j);
+          updateSuscpetibleFlags(grid[ind->row + i][ind->column + j].head, individuals, susceptibleFlags);
+        }
+      }
+    }
+  }
+}
+
+void updateSuscpetibleFlags(CellList *head, Individual individuals[], bool susceptibleFlags[]) {
+  CellList *curr = head;
+
+  while (curr != NULL) {
+    if (!individuals[curr->id].isInfected && !individuals[curr->id].isImmune) {
+      //printf("ID in list: %d\n", curr->id);
+      susceptibleFlags[curr->id] = true;
+    }
+    curr = curr->next;
+  }
+}
+
+void updateIndividualCounters(Individual *ind, bool updateInfectionCounter) {
+  if (ind->isImmune) {
+    ind->susceptible_count += TIME_STEP;
+    if (ind->susceptible_count >= SUSCEPTIBILITY_THR) {
+      ind->isImmune = false;
+      ind->susceptible_count = 0;
+    }
+    return;
+  } else if (ind->isInfected) {
+    ind->immunity_count += TIME_STEP;
+    if (ind->immunity_count >= IMMUNITY_THR) {
+      ind->isImmune = true;
+      ind->isInfected = false;
+      ind->immunity_count = 0;
+    }
+    return;
+  } else if (updateInfectionCounter) {
+    ind->infection_count += TIME_STEP;
+    // printf("(%d) INF COUNT: %d\n", ind->ID, ind->infection_count);
+    if (ind->infection_count >= INFECTION_THR) {
+      ind->isInfected = true;
+      ind->infection_count = 0;
+    }
+    return;
+  } else {
     ind->infection_count = 0;
     return;
   }
