@@ -1,3 +1,5 @@
+#ifndef CONFIG_H_
+# define CONFIG_H_
 typedef struct {
     int POPULATION_SIZE;
     int INITITAL_INFECTED;
@@ -15,3 +17,4 @@ typedef struct {
     int END_TIME;
     int DENSITY_THR;
 } Config;
+#endif

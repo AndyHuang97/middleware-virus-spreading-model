@@ -1,5 +1,7 @@
 #include "parameters.h"
 
+#ifndef CellList_H_
+# define CellList_H_
 struct CellList_t {
   int id;
   struct CellList_t* next;
@@ -13,6 +15,7 @@ typedef struct
   int countryID;
   CellList* head;
 } Cell;
+#endif
 
 void push(CellList** head, int val);
 void printList(CellList* head, int row, int col);

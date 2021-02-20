@@ -2,9 +2,11 @@
 #include <stdbool.h>
 
 #include "cell_list.h"
-// #include "parameters.h"
+#include "parameters.h"
 #include "utils.h"
 
+#ifndef INDIVIDUAL_H_
+# define INDIVIDUAL_H_
 typedef struct {
   int ID;
   bool isInfected;
@@ -17,6 +19,7 @@ typedef struct {
   int speed;
   Direction direction;
 } Individual;
+#endif
 
 void updatePosition(Individual *ind, Config config);
 void searchAndUpdateOnSusceptibles(Individual *ind, int height, int width, Cell grid[height][width], Individual individuals[], int spreadDistance, Config config);

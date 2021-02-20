@@ -5,11 +5,11 @@
 #include <string.h>
 #include <time.h>
 
-//#include "cell_list.h"
+#include "cell_list.h"
 #include "country_stats.h"
-//#include "individual.h"
-// #include "parameters.h"
-//#include "utils.h"
+#include "individual.h"
+#include "parameters.h"
+#include "utils.h"
 
 int main(int argc, char const *argv[]) {
   Config config;

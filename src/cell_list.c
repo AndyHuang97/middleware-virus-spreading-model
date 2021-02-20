@@ -4,8 +4,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-// #include "parameters.h"
-
 //Add item at the start of the list
 void push(CellList **head, int val) {
   CellList *new_ind;
