@@ -28,7 +28,7 @@ int main(int argc, char const *argv[]) {
     config.COUNTRY_WIDTH = atoi(argv[12]);
     config.DAY = atoi(argv[13]);
     config.END_TIME = atoi(argv[14]);
-    config.DENSITY_THR = atoi(argv[15]);
+    config.DENSITY_THR = atof(argv[15]);
   } else {
     printf("You need to provide all parameters.");
     exit(1);
