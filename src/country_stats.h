@@ -12,6 +12,6 @@ typedef struct
 
 MPI_Datatype serializeCountryStatsStruct();
 void country_stats_sum(void* inputBuffer, void* outputBuffer, int* len, MPI_Datatype* datatype);
-void updateCountryStats(Individual ind, Cell grid[GRID_HEIGHT][GRID_WIDTH], CountryStats* localStats, int my_rank, int t, bool verbose);
+void updateCountryStats(Individual ind, int height, int width, Cell grid[height][width], CountryStats* localStats, int my_rank, int t);
 bool anyInfected(CountryStats globalStats[], int countryCount);
 int getTotalSusceptible(CountryStats globalStats[], int countryCount);

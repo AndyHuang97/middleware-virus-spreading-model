@@ -2,7 +2,7 @@
 #include <stdbool.h>
 
 #include "cell_list.h"
-#include "parameters.h"
+// #include "parameters.h"
 #include "utils.h"
 
 typedef struct {
@@ -18,11 +18,11 @@ typedef struct {
   Direction direction;
 } Individual;
 
-void updatePosition(Individual *ind);
-void searchAndUpdateOnSusceptibles(Individual *ind, Cell grid[GRID_HEIGHT][GRID_WIDTH], Individual individuals[], int spreadDistance);
-void searchSusceptibleOnInfected(Individual *ind, Cell grid[GRID_HEIGHT][GRID_WIDTH], Individual individuals[], int spreadDistance, bool susceptibleFlags[]);
+void updatePosition(Individual *ind, Config config);
+void searchAndUpdateOnSusceptibles(Individual *ind, int height, int width, Cell grid[height][width], Individual individuals[], int spreadDistance, Config config);
+void searchSusceptibleOnInfected(Individual *ind, int height, int width, Cell grid[height][width], Individual individuals[], int spreadDistance, bool susceptibleFlags[], Config config);
 void updateSuscpetibleFlags(CellList *head, Individual individuals[], bool susceptibleFlags[]);
-void updateIndividualCounters(Individual *ind, bool updateInfectionCounter);
+void updateIndividualCounters(Individual *ind, bool updateInfectionCounter, Config config);
 bool infectedInCell(CellList *head_ref, Individual individuals[]);
 void printIndividualData(Individual ind, int countryID);
 void printNeighbours(int id, int *neighbours, int len);
