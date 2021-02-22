@@ -36,7 +36,7 @@ int main(int argc, char const *argv[]) {
 
   double time_spent = 0.0;
   clock_t begin = clock();
-  srand(0);
+  srand(1234);
   MPI_Init(NULL, NULL);
   // to store execution time of code
 
@@ -98,7 +98,7 @@ int main(int argc, char const *argv[]) {
                         0,
                         rand_int(0, (config.GRID_HEIGHT - 1)),
                         rand_int(0, (config.GRID_WIDTH - 1)),
-                        rand_int(1, config.MAX_SPEED),
+                        rand_int(1, config.MAX_SPEED) * config.TIME_STEP,
                         0};
       individuals[i] = ind;
       push(&grid[ind.row][ind.column].head, ind.ID);
