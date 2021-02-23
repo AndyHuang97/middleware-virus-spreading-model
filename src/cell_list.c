@@ -4,8 +4,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "parameters.h"
-
 //Add item at the start of the list
 void push(CellList **head, int val) {
   CellList *new_ind;
@@ -28,9 +26,9 @@ void deleteList(CellList **head_ref) {
   *head_ref = NULL;
 }
 
-void clearGrid(Cell grid[][GRID_WIDTH]) {
-  for (int i = 0; i < GRID_HEIGHT; i++) {
-    for (int j = 0; j < GRID_WIDTH; j++) {
+void clearGrid(int height, int width, Cell grid[height][width], Config config) {
+  for (int i = 0; i < config.GRID_HEIGHT; i++) {
+    for (int j = 0; j < config.GRID_WIDTH; j++) {
       deleteList(&grid[i][j].head);
     }
   }
@@ -47,42 +45,42 @@ void printList(CellList *head, int row, int col) {
   printf("\n");
 }
 
-int assignCountries(Cell grid[GRID_HEIGHT][GRID_WIDTH]) {
-  int countriesByWidth = floor(GRID_WIDTH / COUNTRY_WIDTH);
-  int countriesByHeight = floor(GRID_HEIGHT / COUNTRY_HEIGHT);
+int assignCountries(int height, int width, Cell grid[height][width], Config config) {
+  int countriesByWidth = floor(config.GRID_WIDTH / config.COUNTRY_WIDTH);
+  int countriesByHeight = floor(config.GRID_HEIGHT / config.COUNTRY_HEIGHT);
 
   int countriesCount = 0;
   int startRow = 0;
   int startCol = 0;
 
   while (countriesCount < countriesByHeight * countriesByWidth) {
-    for (int i = startRow; i < startRow + COUNTRY_HEIGHT; i++) {
-      for (int j = startCol; j < startCol + COUNTRY_WIDTH; j++) {
+    for (int i = startRow; i < startRow + config.COUNTRY_HEIGHT; i++) {
+      for (int j = startCol; j < startCol + config.COUNTRY_WIDTH; j++) {
         grid[i][j].countryID = countriesCount;
       }
     }
 
-    int assignedCountryWidth = (startCol + COUNTRY_WIDTH) / COUNTRY_WIDTH;
+    int assignedCountryWidth = (startCol + config.COUNTRY_WIDTH) / config.COUNTRY_WIDTH;
     if (assignedCountryWidth == countriesByWidth) {
       startCol = 0;
-      startRow = startRow + COUNTRY_HEIGHT;
+      startRow = startRow + config.COUNTRY_HEIGHT;
     } else
-      startCol = startCol + COUNTRY_WIDTH;
+      startCol = startCol + config.COUNTRY_WIDTH;
 
     countriesCount++;
   }
 
-  if ((GRID_WIDTH % COUNTRY_WIDTH) != 0 || (GRID_HEIGHT % COUNTRY_HEIGHT) != 0) {
+  if ((config.GRID_WIDTH % config.COUNTRY_WIDTH) != 0 || (config.GRID_HEIGHT % config.COUNTRY_HEIGHT) != 0) {
     //Assign all the remaining horizontal cells to a new country
-    for (int i = countriesByHeight * COUNTRY_HEIGHT; i < GRID_HEIGHT; i++) {
-      for (int j = 0; j < GRID_WIDTH; j++) {
+    for (int i = countriesByHeight * config.COUNTRY_HEIGHT; i < config.GRID_HEIGHT; i++) {
+      for (int j = 0; j < config.GRID_WIDTH; j++) {
         grid[i][j].countryID = countriesCount;
       }
     }
 
     //Assign the remaining vertial cells to a new country
-    for (int i = 0; i < countriesByHeight * COUNTRY_HEIGHT; i++) {
-      for (int j = countriesByWidth * COUNTRY_WIDTH; j < GRID_WIDTH; j++) {
+    for (int i = 0; i < countriesByHeight * config.COUNTRY_HEIGHT; i++) {
+      for (int j = countriesByWidth * config.COUNTRY_WIDTH; j < config.GRID_WIDTH; j++) {
         grid[i][j].countryID = countriesCount;
       }
     }

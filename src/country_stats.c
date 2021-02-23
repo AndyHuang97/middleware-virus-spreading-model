@@ -32,18 +32,15 @@ void country_stats_sum(void* inputBuffer, void* outputBuffer, int* len, MPI_Data
   }
 }
 
-void updateCountryStats(Individual ind, Cell grid[GRID_HEIGHT][GRID_WIDTH], CountryStats* localStats, int my_rank, int t, bool verbose) {
+void updateCountryStats(Individual ind, int height, int width, Cell grid[height][width], CountryStats* localStats, int my_rank, int t) {
   int countryID = grid[ind.row][ind.column].countryID;
 
   if (ind.isInfected) {
     localStats[countryID].infected += 1;
-    if (t % (60 * 10) == 0 && verbose) printf("(R: %d, t: %d) country %d) infected +1\n", my_rank, t, countryID);
   } else if (ind.isImmune) {
     localStats[countryID].immune += 1;
-    if (t % (60 * 10) == 0 && verbose) printf("(R: %d, t: %d) country %d) immune +1\n", my_rank, t, countryID);
   } else {
     localStats[countryID].susceptible += 1;
-    if (t % (60 * 10) == 0 && verbose) printf("(R: %d, t: %d) country %d) susceptible +1\n", my_rank, t, countryID);
   }
 }
 

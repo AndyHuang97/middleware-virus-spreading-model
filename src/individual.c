@@ -13,7 +13,7 @@ void printIndividualData(Individual ind, int countryID) {
 
 // Updates the position of an individual by moving in a random direction
 // If the individual reaches the boundaries the direction is inverted
-void updatePosition(Individual *individual) {
+void updatePosition(Individual *individual, Config config) {
   for (int s = individual->speed; s > 0; s--) {
     switch (individual->direction) {
       case UP:
@@ -24,7 +24,7 @@ void updatePosition(Individual *individual) {
           individual->row--;
         break;
       case DOWN:
-        if (individual->row == (GRID_HEIGHT - 1)) {
+        if (individual->row == (config.GRID_HEIGHT - 1)) {
           individual->row--;
           individual->direction = UP;
         } else
@@ -38,7 +38,7 @@ void updatePosition(Individual *individual) {
           individual->column--;
         break;
       case RIGHT:
-        if (individual->column == (GRID_WIDTH - 1)) {
+        if (individual->column == (config.GRID_WIDTH - 1)) {
           individual->column--;
           individual->direction = LEFT;
         } else
@@ -50,17 +50,17 @@ void updatePosition(Individual *individual) {
   }
 }
 
-void searchAndUpdateOnSusceptibles(Individual *ind, Cell grid[GRID_HEIGHT][GRID_WIDTH], Individual individuals[], int spreadDistance) {
+void searchAndUpdateOnSusceptibles(Individual *ind, int height, int width, Cell grid[height][width], Individual individuals[], int spreadDistance, Config config) {
   if (ind->isImmune) {
-    ind->susceptible_count += TIME_STEP;
-    if (ind->susceptible_count >= SUSCEPTIBILITY_THR) {
+    ind->susceptible_count += config.TIME_STEP;
+    if (ind->susceptible_count >= config.SUSCEPTIBILITY_THR) {
       ind->isImmune = false;
       ind->susceptible_count = 0;
     }
     return;
   } else if (ind->isInfected) {
-    ind->immunity_count += TIME_STEP;
-    if (ind->immunity_count >= IMMUNITY_THR) {
+    ind->immunity_count += config.TIME_STEP;
+    if (ind->immunity_count >= config.IMMUNITY_THR) {
       ind->isImmune = true;
       ind->isInfected = false;
       ind->immunity_count = 0;
@@ -69,12 +69,12 @@ void searchAndUpdateOnSusceptibles(Individual *ind, Cell grid[GRID_HEIGHT][GRID_
   } else {
     for (int i = -spreadDistance; i <= spreadDistance; i++) {
       for (int j = -spreadDistance; j <= spreadDistance; j++) {
-        if ((ind->row + i >= 0 && ind->row + i < GRID_HEIGHT) && (ind->column + j >= 0 && ind->column + j < GRID_WIDTH)) {
+        if ((ind->row + i >= 0 && ind->row + i < config.GRID_HEIGHT) && (ind->column + j >= 0 && ind->column + j < config.GRID_WIDTH)) {
           // printf("Individual ID %d) at cell (%d,%d) checking neighbouring cell (%d,%d)\n", ind->ID, ind->row, ind->column, ind->row+i, ind->column+j);
           bool infection = infectedInCell(grid[ind->row + i][ind->column + j].head, individuals);
           if (infection) {
-            ind->infection_count += TIME_STEP;
-            if (ind->infection_count >= INFECTION_THR) {
+            ind->infection_count += config.TIME_STEP;
+            if (ind->infection_count >= config.INFECTION_THR) {
               ind->isInfected = true;
               ind->infection_count = 0;
             }
@@ -89,13 +89,13 @@ void searchAndUpdateOnSusceptibles(Individual *ind, Cell grid[GRID_HEIGHT][GRID_
   }
 }
 
-void searchSusceptibleOnInfected(Individual *ind, Cell grid[GRID_HEIGHT][GRID_WIDTH], Individual individuals[], int spreadDistance, bool susceptibleFlags[]) {
+void searchSusceptibleOnInfected(Individual *ind, int height, int width, Cell grid[height][width], Individual individuals[], int spreadDistance, bool susceptibleFlags[], Config config) {
   if (!ind->isInfected)
     return;
   else {
     for (int i = -spreadDistance; i <= spreadDistance; i++) {
       for (int j = -spreadDistance; j <= spreadDistance; j++) {
-        if ((ind->row + i >= 0 && ind->row + i < GRID_HEIGHT) && (ind->column + j >= 0 && ind->column + j < GRID_WIDTH)) {
+        if ((ind->row + i >= 0 && ind->row + i < config.GRID_HEIGHT) && (ind->column + j >= 0 && ind->column + j < config.GRID_WIDTH)) {
           // printf("Individual ID %d) at cell (%d,%d) checking neighbouring cell (%d,%d)\n", ind->ID, ind->row, ind->column, ind->row+i, ind->column+j);
           updateSuscpetibleFlags(grid[ind->row + i][ind->column + j].head, individuals, susceptibleFlags);
         }
@@ -116,26 +116,26 @@ void updateSuscpetibleFlags(CellList *head, Individual individuals[], bool susce
   }
 }
 
-void updateIndividualCounters(Individual *ind, bool updateInfectionCounter) {
+void updateIndividualCounters(Individual *ind, bool updateInfectionCounter, Config config) {
   if (ind->isImmune) {
-    ind->susceptible_count += TIME_STEP;
-    if (ind->susceptible_count >= SUSCEPTIBILITY_THR) {
+    ind->susceptible_count += config.TIME_STEP;
+    if (ind->susceptible_count >= config.SUSCEPTIBILITY_THR) {
       ind->isImmune = false;
       ind->susceptible_count = 0;
     }
     return;
   } else if (ind->isInfected) {
-    ind->immunity_count += TIME_STEP;
-    if (ind->immunity_count >= IMMUNITY_THR) {
+    ind->immunity_count += config.TIME_STEP;
+    if (ind->immunity_count >= config.IMMUNITY_THR) {
       ind->isImmune = true;
       ind->isInfected = false;
       ind->immunity_count = 0;
     }
     return;
   } else if (updateInfectionCounter) {
-    ind->infection_count += TIME_STEP;
+    ind->infection_count += config.TIME_STEP;
     // printf("(%d) INF COUNT: %d\n", ind->ID, ind->infection_count);
-    if (ind->infection_count >= INFECTION_THR) {
+    if (ind->infection_count >= config.INFECTION_THR) {
       ind->isInfected = true;
       ind->infection_count = 0;
     }
