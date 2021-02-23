@@ -50,20 +50,25 @@ void updatePosition(Individual *individual, Config config) {
   }
 }
 
-void searchAndUpdateOnSusceptibles(Individual *ind, int height, int width, Cell grid[height][width], Individual individuals[], int spreadDistance, Config config) {
+// Search on susceptible individuals for infected in their neighborhood. If at least one infected is found update the counter
+void searchAndUpdateOnSusceptibles(Individual *ind, int height, int width, Cell grid[height][width], Individual individuals[], int spreadDistance, int timeLeft, Config config) {
   if (ind->isImmune) {
-    ind->susceptible_count += config.TIME_STEP;
+    int newTimeLeft = timeLeft - (config.SUSCEPTIBILITY_THR - ind->susceptible_count);
+    ind->susceptible_count += timeLeft;
     if (ind->susceptible_count >= config.SUSCEPTIBILITY_THR) {
       ind->isImmune = false;
       ind->susceptible_count = 0;
+      searchAndUpdateOnSusceptibles(ind, height, width, grid, individuals, spreadDistance, newTimeLeft, config);
     }
     return;
   } else if (ind->isInfected) {
-    ind->immunity_count += config.TIME_STEP;
+    int newTimeLeft = timeLeft - (config.IMMUNITY_THR - ind->immunity_count);
+    ind->immunity_count += timeLeft;
     if (ind->immunity_count >= config.IMMUNITY_THR) {
       ind->isImmune = true;
       ind->isInfected = false;
       ind->immunity_count = 0;
+      searchAndUpdateOnSusceptibles(ind, height, width, grid, individuals, spreadDistance, newTimeLeft, config);
     }
     return;
   } else {
@@ -73,10 +78,12 @@ void searchAndUpdateOnSusceptibles(Individual *ind, int height, int width, Cell 
           // printf("Individual ID %d) at cell (%d,%d) checking neighbouring cell (%d,%d)\n", ind->ID, ind->row, ind->column, ind->row+i, ind->column+j);
           bool infection = infectedInCell(grid[ind->row + i][ind->column + j].head, individuals);
           if (infection) {
-            ind->infection_count += config.TIME_STEP;
+            int newTimeLeft = timeLeft - (config.INFECTION_THR - ind->infection_count);
+            ind->infection_count += timeLeft;
             if (ind->infection_count >= config.INFECTION_THR) {
               ind->isInfected = true;
               ind->infection_count = 0;
+              searchAndUpdateOnSusceptibles(ind, height, width, grid, individuals, spreadDistance, newTimeLeft, config);
             }
             return;
           }
@@ -89,6 +96,7 @@ void searchAndUpdateOnSusceptibles(Individual *ind, int height, int width, Cell 
   }
 }
 
+//Search for the susceptible individuals in the neighborhood of an infected individual
 void searchSusceptibleOnInfected(Individual *ind, int height, int width, Cell grid[height][width], Individual individuals[], int spreadDistance, bool susceptibleFlags[], Config config) {
   if (!ind->isInfected)
     return;
@@ -108,36 +116,40 @@ void updateSuscpetibleFlags(CellList *head, Individual individuals[], bool susce
   CellList *curr = head;
 
   while (curr != NULL) {
-    if (!individuals[curr->id].isInfected && !individuals[curr->id].isImmune) {
-      //printf("ID in list: %d\n", curr->id);
-      susceptibleFlags[curr->id] = true;
-    }
+    //printf("ID in list: %d\n", curr->id);
+    susceptibleFlags[curr->id] = true;
     curr = curr->next;
   }
 }
 
-void updateIndividualCounters(Individual *ind, bool updateInfectionCounter, Config config) {
+void updateIndividualCounters(Individual *ind, bool updateInfectionCounter, int timeLeft, Config config) {
   if (ind->isImmune) {
-    ind->susceptible_count += config.TIME_STEP;
+    int newTimeLeft = timeLeft - (config.SUSCEPTIBILITY_THR - ind->susceptible_count);
+    ind->susceptible_count += timeLeft;
     if (ind->susceptible_count >= config.SUSCEPTIBILITY_THR) {
       ind->isImmune = false;
       ind->susceptible_count = 0;
+      updateIndividualCounters(ind, updateInfectionCounter, newTimeLeft, config);
     }
     return;
   } else if (ind->isInfected) {
-    ind->immunity_count += config.TIME_STEP;
+    int newTimeLeft = timeLeft - (config.IMMUNITY_THR - ind->immunity_count);
+    ind->immunity_count += timeLeft;
     if (ind->immunity_count >= config.IMMUNITY_THR) {
       ind->isImmune = true;
       ind->isInfected = false;
       ind->immunity_count = 0;
+      updateIndividualCounters(ind, updateInfectionCounter, newTimeLeft, config);
     }
     return;
   } else if (updateInfectionCounter) {
-    ind->infection_count += config.TIME_STEP;
+    int newTimeLeft = timeLeft - (config.INFECTION_THR - ind->infection_count);
+    ind->infection_count += timeLeft;
     // printf("(%d) INF COUNT: %d\n", ind->ID, ind->infection_count);
     if (ind->infection_count >= config.INFECTION_THR) {
       ind->isInfected = true;
       ind->infection_count = 0;
+      updateIndividualCounters(ind, updateInfectionCounter, newTimeLeft, config);
     }
     return;
   } else {

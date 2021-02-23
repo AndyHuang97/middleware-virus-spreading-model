@@ -99,7 +99,7 @@ int main(int argc, char const *argv[]) {
                         rand_int(0, (config.GRID_HEIGHT - 1)),
                         rand_int(0, (config.GRID_WIDTH - 1)),
                         rand_int(1, config.MAX_SPEED) * config.TIME_STEP,
-                        0};
+                        (Direction)rand_int(0, 3)};
       individuals[i] = ind;
       push(&grid[ind.row][ind.column].head, ind.ID);
       //printIndividualData(ind, grid[ind.row][ind.column].countryID);
@@ -120,12 +120,12 @@ int main(int argc, char const *argv[]) {
     if (my_rank == 0 && t % config.DAY == 0) printf("(R: %d) SIMULATION DAY: %d \n", my_rank, t / config.DAY);
     clearGrid(config.GRID_HEIGHT, config.GRID_WIDTH, grid, config);
 
-    if (my_rank == 0) {
-      for (int i = 0; i < config.POPULATION_SIZE; i++) {
-        Direction dir = (Direction)rand_int(0, 3);
-        individuals[i].direction = dir;
-      }
-    }
+    // if (my_rank == 0) {
+    //   for (int i = 0; i < config.POPULATION_SIZE; i++) {
+    //     Direction dir = (Direction)rand_int(0, 3);
+    //     individuals[i].direction = dir;
+    //   }
+    // }
 
     // MPI_Scatter(individuals, num_elements_per_proc, individual_type, local_arr, num_elements_per_proc, individual_type, 0, MPI_COMM_WORLD);
     MPI_Scatterv(individuals, scounts, displs, individual_type, local_arr, scounts[my_rank], individual_type, 0, MPI_COMM_WORLD);
@@ -146,7 +146,7 @@ int main(int argc, char const *argv[]) {
     CountryStats localStats[countriesCount];
     memset(localStats, 0, sizeof(localStats));
 
-    if (searchOnInfected) {
+    if (false) {
       bool susceptibleFlags[config.POPULATION_SIZE];
       memset(susceptibleFlags, false, sizeof(susceptibleFlags));
       for (int i = 0; i < scounts[my_rank]; i++) {
@@ -171,13 +171,13 @@ int main(int argc, char const *argv[]) {
       // printf("\n");
 
       for (int i = 0; i < scounts[my_rank]; i++) {
-        updateIndividualCounters(&local_arr[i], reducedSusceptibleFlags[local_arr[i].ID], config);
+        updateIndividualCounters(&local_arr[i], reducedSusceptibleFlags[local_arr[i].ID], config.TIME_STEP, config);
         updateCountryStats(local_arr[i], config.GRID_HEIGHT, config.GRID_WIDTH, grid, localStats, my_rank, t);
       }
 
     } else {
       for (int i = 0; i < scounts[my_rank]; i++) {
-        searchAndUpdateOnSusceptibles(&local_arr[i], config.GRID_HEIGHT, config.GRID_WIDTH, grid, gather_array, config.SPREAD_DISTANCE, config);
+        searchAndUpdateOnSusceptibles(&local_arr[i], config.GRID_HEIGHT, config.GRID_WIDTH, grid, gather_array, config.SPREAD_DISTANCE, config.TIME_STEP, config);
         updateCountryStats(local_arr[i], config.GRID_HEIGHT, config.GRID_WIDTH, grid, localStats, my_rank, t);
       }
     }
