@@ -171,13 +171,15 @@ int main(int argc, char const *argv[]) {
       // printf("\n");
 
       for (int i = 0; i < scounts[my_rank]; i++) {
-        updateIndividualCounters(&local_arr[i], reducedSusceptibleFlags[local_arr[i].ID], config);
+        updateIndividualCounters(&local_arr[i], reducedSusceptibleFlags[local_arr[i].ID], config.TIME_STEP, config);
         updateCountryStats(local_arr[i], config.GRID_HEIGHT, config.GRID_WIDTH, grid, localStats, my_rank, t);
       }
 
     } else {
       for (int i = 0; i < scounts[my_rank]; i++) {
-        searchAndUpdateOnSusceptibles(&local_arr[i], config.GRID_HEIGHT, config.GRID_WIDTH, grid, gather_array, config.SPREAD_DISTANCE, config);
+        searchAndUpdateOnSusceptibles(&local_arr[i], config.GRID_HEIGHT, config.GRID_WIDTH, grid, gather_array, config.SPREAD_DISTANCE, config.TIME_STEP, config);
+        // printf("(R: %d, t: %d) ", my_rank, t);
+        // printIndividualData(local_arr[i], grid[local_arr[i].row][local_arr[i].column].countryID);
         updateCountryStats(local_arr[i], config.GRID_HEIGHT, config.GRID_WIDTH, grid, localStats, my_rank, t);
       }
     }
