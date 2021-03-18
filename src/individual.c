@@ -75,7 +75,6 @@ void searchAndUpdateOnSusceptibles(Individual *ind, int height, int width, Cell 
     for (int i = -spreadDistance; i <= spreadDistance; i++) {
       for (int j = -spreadDistance; j <= spreadDistance; j++) {
         if ((ind->row + i >= 0 && ind->row + i < config.GRID_HEIGHT) && (ind->column + j >= 0 && ind->column + j < config.GRID_WIDTH)) {
-          // printf("Individual ID %d) at cell (%d,%d) checking neighbouring cell (%d,%d)\n", ind->ID, ind->row, ind->column, ind->row+i, ind->column+j);
           bool infection = infectedInCell(grid[ind->row + i][ind->column + j].head, individuals);
           if (infection) {
             int newTimeLeft = timeLeft - (config.INFECTION_THR - ind->infection_count);
@@ -104,7 +103,6 @@ void searchSusceptibleOnInfected(Individual *ind, int height, int width, Cell gr
     for (int i = -spreadDistance; i <= spreadDistance; i++) {
       for (int j = -spreadDistance; j <= spreadDistance; j++) {
         if ((ind->row + i >= 0 && ind->row + i < config.GRID_HEIGHT) && (ind->column + j >= 0 && ind->column + j < config.GRID_WIDTH)) {
-          // printf("Individual ID %d) at cell (%d,%d) checking neighbouring cell (%d,%d)\n", ind->ID, ind->row, ind->column, ind->row+i, ind->column+j);
           updateSuscpetibleFlags(grid[ind->row + i][ind->column + j].head, individuals, susceptibleFlags);
         }
       }
@@ -116,7 +114,6 @@ void updateSuscpetibleFlags(CellList *head, Individual individuals[], bool susce
   CellList *curr = head;
 
   while (curr != NULL) {
-    //printf("ID in list: %d\n", curr->id);
     susceptibleFlags[curr->id] = true;
     curr = curr->next;
   }
@@ -145,7 +142,6 @@ void updateIndividualCounters(Individual *ind, bool updateInfectionCounter, int 
   } else if (updateInfectionCounter) {
     int newTimeLeft = timeLeft - (config.INFECTION_THR - ind->infection_count);
     ind->infection_count += timeLeft;
-    // printf("(%d) INF COUNT: %d\n", ind->ID, ind->infection_count);
     if (ind->infection_count >= config.INFECTION_THR) {
       ind->isInfected = true;
       ind->infection_count = 0;
@@ -162,7 +158,6 @@ bool infectedInCell(CellList *head, Individual individuals[]) {
   CellList *curr = head;
 
   while (curr != NULL) {
-    // printf("ID in list: %d, length: %d\n", curr->id, *length);
     if (individuals[curr->id].isInfected) return true;
     curr = curr->next;
   }

@@ -30,15 +30,17 @@ int main(int argc, char const *argv[]) {
     config.END_TIME = atoi(argv[14]);
     config.DENSITY_THR = atof(argv[15]);
   } else {
-    printf("You need to provide all parameters.");
+    printf("You need to provide all parameters. \n");
     exit(1);
   }
 
+  checkParameters(config);
+
+  // To store execution time of code
   double time_spent = 0.0;
   clock_t begin = clock();
   srand(1234);
   MPI_Init(NULL, NULL);
-  // to store execution time of code
 
   MPI_Datatype individual_type = serializeIndividualStruct();
   MPI_Datatype country_stats_type = serializeCountryStatsStruct();
@@ -65,7 +67,6 @@ int main(int argc, char const *argv[]) {
     } else {
       scounts[i] = config.POPULATION_SIZE - (world_size - 1) * num_elements_per_proc;
     }
-    //printf("%d) scounts: %d, displs: %d\n", i, scounts[i], displs[i]);
   }
 
   // Every process initialize a grid
@@ -76,15 +77,6 @@ int main(int argc, char const *argv[]) {
   }
 
   int countriesCount = assignCountries(config.GRID_HEIGHT, config.GRID_WIDTH, grid, config);
-
-  // if (my_rank == 0) {
-  //   for (int row = 0; row < GRID_HEIGHT; row++) {
-  //     for (int columns = 0; columns < GRID_WIDTH; columns++) {
-  //       printf("%d\t", grid[row][columns].countryID);
-  //     }
-  //     printf("\n");
-  //   }
-  // }
 
   if (my_rank == 0) {
     printf("// INITIAL POPULATION // \n");
@@ -127,17 +119,13 @@ int main(int argc, char const *argv[]) {
       }
     }
 
-    // MPI_Scatter(individuals, num_elements_per_proc, individual_type, local_arr, num_elements_per_proc, individual_type, 0, MPI_COMM_WORLD);
     MPI_Scatterv(individuals, scounts, displs, individual_type, local_arr, scounts[my_rank], individual_type, 0, MPI_COMM_WORLD);
 
     for (int i = 0; i < scounts[my_rank]; i++) {
       updatePosition(&local_arr[i], config);
-      // printf("(R: %d, t: %d) ", my_rank, t);
-      // printIndividualData(local_arr[i], grid[local_arr[i].row][local_arr[i].column].countryID);
     }
 
     // Every process receives all the updated indiduals
-    // MPI_Allgather(local_arr, num_elements_per_proc, individual_type, gather_array, num_elements_per_proc, individual_type, MPI_COMM_WORLD);
     MPI_Allgatherv(local_arr, scounts[my_rank], individual_type, gather_array, scounts, displs, individual_type, MPI_COMM_WORLD);
 
     for (int i = 0; i < config.POPULATION_SIZE; i++) {
@@ -153,22 +141,9 @@ int main(int argc, char const *argv[]) {
         searchSusceptibleOnInfected(&local_arr[i], config.GRID_HEIGHT, config.GRID_WIDTH, grid, gather_array, config.SPREAD_DISTANCE, susceptibleFlags, config);
       }
 
-      // printf("(R:%d, t:%d) FLAGS:", my_rank, t);
-      // for (int i = 0; i < POPULATION_SIZE; i++) {
-      //   printf("%d:%d ", i, susceptibleFlags[i]);
-      // }
-      // printf("\n");
-
       bool reducedSusceptibleFlags[config.POPULATION_SIZE];
       memset(reducedSusceptibleFlags, false, sizeof(reducedSusceptibleFlags));
       MPI_Allreduce(&susceptibleFlags, &reducedSusceptibleFlags, config.POPULATION_SIZE, MPI_C_BOOL, MPI_LOR, MPI_COMM_WORLD);
-
-      // printf("(R:%d, t:%d) ", my_rank, t);
-      // printf("REDUCED FLAGS:");
-      // for (int i = 0; i < POPULATION_SIZE; i++) {
-      //   printf("%d:%d ", i, reducedSusceptibleFlags[i]);
-      // }
-      // printf("\n");
 
       for (int i = 0; i < scounts[my_rank]; i++) {
         updateIndividualCounters(&local_arr[i], reducedSusceptibleFlags[local_arr[i].ID], config.TIME_STEP, config);
@@ -178,13 +153,10 @@ int main(int argc, char const *argv[]) {
     } else {
       for (int i = 0; i < scounts[my_rank]; i++) {
         searchAndUpdateOnSusceptibles(&local_arr[i], config.GRID_HEIGHT, config.GRID_WIDTH, grid, gather_array, config.SPREAD_DISTANCE, config.TIME_STEP, config);
-        // printf("(R: %d, t: %d) ", my_rank, t);
-        // printIndividualData(local_arr[i], grid[local_arr[i].row][local_arr[i].column].countryID);
         updateCountryStats(local_arr[i], config.GRID_HEIGHT, config.GRID_WIDTH, grid, localStats, my_rank, t);
       }
     }
 
-    // MPI_Gather(local_arr, num_elements_per_proc, individual_type, final_gather_array, num_elements_per_proc, individual_type, 0, MPI_COMM_WORLD);
     MPI_Gatherv(local_arr, scounts[my_rank], individual_type, final_gather_array, scounts, displs, individual_type, 0, MPI_COMM_WORLD);
 
     // Reduce all of the local sums into the global sum
@@ -198,14 +170,11 @@ int main(int argc, char const *argv[]) {
     }
 
     MPI_Bcast(&searchOnInfected, 1, MPI_C_BOOL, 0, MPI_COMM_WORLD);
-    //printf("(R: %d, t: %d) SEARCH STRATEGY: %d\n", my_rank, t, searchOnInfected);
 
     bool noInfectedLeft = false;
     if (my_rank == 0) {
       for (int i = 0; i < config.POPULATION_SIZE; i++) {
         individuals[i] = final_gather_array[i];
-        // printf("(R: %d, t:%d) ", my_rank, t);
-        // printIndividualData(individuals[i], grid[individuals[i].row][individuals[i].column].countryID);
       }
 
       if (t > 0 && t % config.DAY == 0) {
@@ -226,11 +195,11 @@ int main(int argc, char const *argv[]) {
       }
     }
 
+    // Synchronize processes at the end of each iteration
     MPI_Barrier(MPI_COMM_WORLD);
   }
 
   //Completely free the memory
-
   if (my_rank == 0) free(final_gather_array);
 
   free(gather_array);

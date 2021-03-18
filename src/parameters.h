@@ -1,5 +1,7 @@
 #ifndef CONFIG_H_
 #define CONFIG_H_
+
+// Struct to contain all the configuration parameters passed as input arguments
 typedef struct {
   int POPULATION_SIZE;
   int INITITAL_INFECTED;

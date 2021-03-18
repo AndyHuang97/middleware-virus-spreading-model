@@ -4,7 +4,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-//Add item at the start of the list
 void push(CellList **head, int val) {
   CellList *new_ind;
   new_ind = (CellList *)malloc(sizeof(CellList));
